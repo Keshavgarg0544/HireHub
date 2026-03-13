@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const bcrypt = require("bcrypt");
 
 const User = sequelize.define("User", {
   id: {
@@ -29,13 +30,11 @@ const User = sequelize.define("User", {
 
   role: {
     type: DataTypes.ENUM("ADMIN", "RECRUITER", "JOB_SEEKER"),
-    allowNull: false,
     defaultValue: "JOB_SEEKER"
   },
 
   phone: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: DataTypes.STRING
   },
 
   isActive: {
@@ -44,7 +43,14 @@ const User = sequelize.define("User", {
   }
 
 }, {
-  timestamps: true
+  timestamps: true,
+
+  hooks: {
+    beforeCreate: async (user) => {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(user.password, salt);
+    }
+  }
 });
 
 module.exports = User;
