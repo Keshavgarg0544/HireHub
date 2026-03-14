@@ -27,7 +27,12 @@ exports.register = async (req, res) => {
 
     res.status(201).json({
       message: "User registered successfully",
-      user
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
 
   } catch (error) {
@@ -37,7 +42,6 @@ exports.register = async (req, res) => {
     });
   }
 };
-
 
 // LOGIN
 exports.login = async (req, res) => {
