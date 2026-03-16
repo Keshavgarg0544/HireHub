@@ -3,20 +3,19 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { registerSchema } = require("../validation/auth.validation");
 
-const { error } = registerSchema.validate(req.body);
-
-if (error) {
-  return res.status(400).json({
-    message: error.details[0].message
-  });
-}
-
-
 const User = db.User;
 
 // REGISTER
 exports.register = async (req, res) => {
   try {
+
+        const { error } = registerSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        message: error.details[0].message
+      });
+    }
 
     const { name, email, password, role } = req.body;
 
@@ -28,12 +27,14 @@ exports.register = async (req, res) => {
       });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       name,
       email,
-      password,
+      password: hashedPassword,
       role
-    });
+});
 
     res.status(201).json({
       message: "User registered successfully",
@@ -63,8 +64,8 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(404).json({
-        message: "User not found"
+      return res.status(401).json({
+      message: "Invalid email or password"
       });
     }
 
@@ -72,7 +73,7 @@ exports.login = async (req, res) => {
 
     if (!validPassword) {
       return res.status(401).json({
-        message: "Invalid password"
+        message: "Invalid email or password"
       });
     }
 
