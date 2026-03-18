@@ -1,5 +1,5 @@
 const db = require("../models");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { registerSchema } = require("../validation/auth.validation");
 
@@ -8,8 +8,7 @@ const User = db.User;
 // REGISTER
 exports.register = async (req, res) => {
   try {
-
-        const { error } = registerSchema.validate(req.body);
+    const { error } = registerSchema.validate(req.body);
 
     if (error) {
       return res.status(400).json({
@@ -17,7 +16,10 @@ exports.register = async (req, res) => {
       });
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, role } = req.body;
+
+    const email = String(req.body.email).toLowerCase().trim();
+    const password = String(req.body.password);
 
     const existingUser = await User.findOne({ where: { email } });
 
@@ -27,14 +29,13 @@ exports.register = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
+    // ❗ NO hashing here (model hook karega)
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
-      role
-});
+      password,
+      role: role || "JOB_SEEKER"
+    });
 
     res.status(201).json({
       message: "User registered successfully",
@@ -54,18 +55,18 @@ exports.register = async (req, res) => {
   }
 };
 
+
 // LOGIN
 exports.login = async (req, res) => {
-
   try {
-
-    const { email, password } = req.body;
+    const email = String(req.body.email).toLowerCase().trim();
+    const password = String(req.body.password);
 
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
       return res.status(401).json({
-      message: "Invalid email or password"
+        message: "Invalid email or password"
       });
     }
 
@@ -79,7 +80,7 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "fallbacksecret",
       { expiresIn: "24h" }
     );
 
@@ -89,12 +90,9 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       message: "Login failed",
       error: error.message
     });
-
   }
-
 };

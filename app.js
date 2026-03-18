@@ -23,6 +23,7 @@ app.use("/api/companies", companyRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use(errorHandler);
 
+
 app.get("/", (req, res) => {
   res.json({ message: "HireHub API Running" });
 });

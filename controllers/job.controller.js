@@ -1,5 +1,5 @@
 const db = require("../models");
-
+const { jobSchema } = require("../validation/job.validation");
 const Job = db.Job;
 const Company = db.Company;
 
@@ -14,7 +14,13 @@ exports.createJob = async (req, res) => {
         message: "Only recruiters can post jobs"
       });
     }
+     const { error } = jobSchema.validate(req.body);
 
+    if (error) {
+      return res.status(400).json({
+        message: error.details[0].message
+      });
+    }
     const {
       title,
       description,
