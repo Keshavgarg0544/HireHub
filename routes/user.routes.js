@@ -6,7 +6,6 @@ const db = require("../models");
 
 const User = db.User;
 
-// 🔹 GET CURRENT USER
 router.get("/me", auth, async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id, {

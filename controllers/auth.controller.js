@@ -5,7 +5,6 @@ const { registerSchema } = require("../validation/auth.validation");
 
 const User = db.User;
 
-// REGISTER
 exports.register = async (req, res, next) => {
   try {
     const { error } = registerSchema.validate(req.body);
@@ -34,7 +33,7 @@ exports.register = async (req, res, next) => {
     const user = await User.create({
       name,
       email,
-      password, // hashed via model hook
+      password, 
       role: role || "JOB_SEEKER",
     });
 
@@ -54,7 +53,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// LOGIN
+
 exports.login = async (req, res, next) => {
   try {
     const email = String(req.body.email || "").toLowerCase().trim();

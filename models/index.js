@@ -13,9 +13,7 @@ db.Company = Company;
 db.Job = Job;
 db.Application = Application;
 
-/* ================= RELATIONSHIPS ================= */
 
-// 🔹 User → Jobs (Recruiter posts jobs)
 User.hasMany(Job, {
   foreignKey: "postedBy",
   as: "postedJobs",
@@ -26,7 +24,6 @@ Job.belongsTo(User, {
   as: "recruiter",
 });
 
-// 🔹 Company → Jobs
 Company.hasMany(Job, {
   foreignKey: "companyId",
   as: "jobs",
@@ -37,7 +34,6 @@ Job.belongsTo(Company, {
   as: "company",
 });
 
-// 🔹 User → Applications
 User.hasMany(Application, {
   foreignKey: "applicantId",
   as: "applications",
@@ -48,7 +44,6 @@ Application.belongsTo(User, {
   as: "applicant",
 });
 
-// 🔹 Job → Applications
 Job.hasMany(Application, {
   foreignKey: "jobId",
   as: "applications",
@@ -59,7 +54,6 @@ Application.belongsTo(Job, {
   as: "job",
 });
 
-// 🔹 User → Company (creator)
 User.hasMany(Company, {
   foreignKey: "createdBy",
   as: "companies",

@@ -5,7 +5,7 @@ const { Op } = require("sequelize");
 const Job = db.Job;
 const Company = db.Company;
 
-// CREATE JOB
+
 exports.createJob = async (req, res, next) => {
   try {
     const { error } = jobSchema.validate(req.body);
@@ -74,7 +74,7 @@ exports.createJob = async (req, res, next) => {
 };
 
 
-// GET ALL JOBS
+
 exports.getJobs = async (req, res, next) => {
   try {
     const {
@@ -167,7 +167,7 @@ exports.getJobs = async (req, res, next) => {
 };
 
 
-// GET JOB BY ID
+
 exports.getJobById = async (req, res, next) => {
   try {
     const id = req.params.id;

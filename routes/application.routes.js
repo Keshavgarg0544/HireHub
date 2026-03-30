@@ -6,7 +6,6 @@ const applicationController = require("../controllers/application.controller");
 const auth = require("../middleware/auth.middleware");
 const authorize = require("../middleware/role.middleware");
 
-// 🔹 APPLY → only job seeker
 router.post(
   "/apply/:jobId",
   auth,
@@ -14,7 +13,6 @@ router.post(
   applicationController.applyJob
 );
 
-// 🔹 MY APPLICATIONS → only job seeker
 router.get(
   "/my",
   auth,
@@ -22,7 +20,6 @@ router.get(
   applicationController.getMyApplications
 );
 
-// 🔹 VIEW APPLICANTS → only recruiter
 router.get(
   "/job/:jobId",
   auth,
@@ -30,7 +27,6 @@ router.get(
   applicationController.getApplicationByJob
 );
 
-// 🔹 UPDATE STATUS → only recruiter
 router.put(
   "/:id/status",
   auth,

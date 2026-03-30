@@ -2,7 +2,7 @@ const db = require("../models");
 
 const Company = db.Company;
 
-// CREATE COMPANY
+
 exports.createCompany = async (req, res, next) => {
   try {
     const { name, description, website, location } = req.body;
@@ -37,7 +37,7 @@ exports.createCompany = async (req, res, next) => {
 };
 
 
-// GET ALL COMPANIES
+
 exports.getCompanies = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -89,7 +89,7 @@ exports.getCompanies = async (req, res, next) => {
 };
 
 
-// GET COMPANY BY ID
+
 exports.getCompanyById = async (req, res, next) => {
   try {
     const id = req.params.id;

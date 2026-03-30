@@ -28,7 +28,6 @@ exports.registerSchema = Joi.object({
       "string.min": "Password must be at least 6 characters",
     }),
 
-  // 🔥 OPTIONAL (and safer)
   role: Joi.string()
     .valid("RECRUITER", "JOB_SEEKER")
     .optional(),

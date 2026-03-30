@@ -61,7 +61,6 @@ const Application = sequelize.define("Application", {
     },
   },
 
-  // 🔹 Future-proof fields (optional but recommended)
    coverLetter: {
     type: DataTypes.TEXT,
     allowNull: true,

@@ -3,7 +3,6 @@ const db = require("../models");
 const Application = db.Application;
 const Job = db.Job;
 
-// APPLY TO JOB
 exports.applyJob = async (req, res, next) => {
   try {
     const jobId = req.params.jobId;
@@ -57,7 +56,6 @@ exports.applyJob = async (req, res, next) => {
   }
 };
 
-// GET MY APPLICATIONS
 exports.getMyApplications = async (req, res, next) => {
   try {
     const applications = await Application.findAll({
@@ -119,7 +117,6 @@ exports.getMyApplications = async (req, res, next) => {
   }
 };
 
-// GET APPLICATIONS BY JOB
 exports.getApplicationByJob = async (req, res, next) => {
   try {
     const { jobId } = req.params;
@@ -168,7 +165,6 @@ exports.getApplicationByJob = async (req, res, next) => {
   }
 };
 
-// UPDATE APPLICATION STATUS
 const VALID_TRANSITIONS = {
   APPLIED: ["SHORTLISTED", "REJECTED"],
   SHORTLISTED: ["INTERVIEW", "REJECTED"],
