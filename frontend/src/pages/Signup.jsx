@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { User, Mail, Lock, UserPlus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { User, Mail, Lock, UserPlus, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { register } from '../services/auth.service';
 
 const Signup = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -10,6 +12,8 @@ const Signup = () => {
         role: 'JOB_SEEKER'
     });
     const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [apiError, setApiError] = useState('');
 
     const validate = () => {
         let newErrors = {};
@@ -24,11 +28,23 @@ const Signup = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setApiError('');
+
         if (validate()) {
-            console.log("Signup Form validated", formData);
-            alert("Signup form submitted (UI only)");
+            setLoading(true);
+            try {
+                const response = await register(formData);
+                if (response.success) {
+                    alert('Registration successful! Please login.');
+                    navigate('/login');
+                }
+            } catch (err) {
+                setApiError(err.message || 'Registration failed');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -48,6 +64,13 @@ const Signup = () => {
                         Create your account
                     </p>
                 </div>
+
+                {apiError && (
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                        <p className="text-sm text-red-700">{apiError}</p>
+                    </div>
+                )}
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm space-y-4">
                         <div>
@@ -121,12 +144,17 @@ const Signup = () => {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                            disabled={loading}
+                            className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors`}
                         >
                             <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                                <UserPlus className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
+                                {loading ? (
+                                    <Loader2 className="h-5 w-5 text-blue-200 animate-spin" />
+                                ) : (
+                                    <UserPlus className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
+                                )}
                             </span>
-                            Sign up
+                            {loading ? 'Creating account...' : 'Sign up'}
                         </button>
                     </div>
 

@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Mail, Lock, LogIn } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Mail, Lock, LogIn, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { login } from '../services/auth.service';
 
 const Login = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
     const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [apiError, setApiError] = useState('');
 
     const validate = () => {
         let newErrors = {};
@@ -20,11 +24,23 @@ const Login = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setApiError('');
+        
         if (validate()) {
-            console.log("Form validated", formData);
-            alert("Login form submitted (UI only)");
+            setLoading(true);
+            try {
+                const response = await login(formData.email, formData.password);
+                if (response.success) {
+                    // Navigate based on role or home
+                    navigate('/');
+                }
+            } catch (err) {
+                setApiError(err.message || 'Login failed');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -44,6 +60,13 @@ const Login = () => {
                         Sign in to your account
                     </p>
                 </div>
+
+                {apiError && (
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                        <p className="text-sm text-red-700">{apiError}</p>
+                    </div>
+                )}
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm space-y-4">
                         <div>
@@ -86,12 +109,17 @@ const Login = () => {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                            disabled={loading}
+                            className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors`}
                         >
                             <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                                <LogIn className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
+                                {loading ? (
+                                    <Loader2 className="h-5 w-5 text-blue-200 animate-spin" />
+                                ) : (
+                                    <LogIn className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
+                                )}
                             </span>
-                            Sign in
+                            {loading ? 'Signing in...' : 'Sign in'}
                         </button>
                     </div>
 
