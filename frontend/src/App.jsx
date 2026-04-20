@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import JobDetails from './pages/JobDetails';
 import CreateJob from './pages/recruiter/CreateJob';
 import CreateCompany from './pages/recruiter/CreateCompany';
+import ManageJobs from './pages/recruiter/ManageJobs';
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 
