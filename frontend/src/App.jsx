@@ -6,6 +6,7 @@ import JobDetails from './pages/JobDetails';
 import CreateJob from './pages/recruiter/CreateJob';
 import CreateCompany from './pages/recruiter/CreateCompany';
 import ManageJobs from './pages/recruiter/ManageJobs';
+import MyApplications from './pages/seeker/MyApplications';
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 
@@ -22,12 +23,12 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/jobs/:id" element={<JobDetails />} />
-            <Route path="/applications" element={<div>My Applications Placeholder</div>} />
+            <Route path="/applications" element={<MyApplications />} />
 
             {/* Recruiter Routes */}
             <Route path="/recruiter/create-job" element={<CreateJob />} />
             <Route path="/recruiter/create-company" element={<CreateCompany />} />
-            <Route path="/recruiter/jobs" element={<div>Manage Jobs Placeholder</div>} />
+            <Route path="/recruiter/jobs" element={<ManageJobs />} />
           </Route>
         </Route>
 
