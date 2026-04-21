@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, FileText, Home } from 'lucide-react';
+import { LogOut, FileText, Home, Briefcase, Building } from 'lucide-react';
 import { logout, getCurrentUser } from '../../services/auth.service';
 
 const Navbar = () => {
@@ -34,6 +34,9 @@ const Navbar = () => {
               <>
                 <Link to="/recruiter/jobs" className="flex items-center text-gray-600 hover:text-blue-600 transition-colors">
                   <Briefcase className="h-5 w-5 mr-1" /> Manage Jobs
+                </Link>
+                <Link to="/recruiter/create-company" className="flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                  <Building className="h-5 w-5 mr-1" /> Register Company
                 </Link>
                 <Link 
                   to="/recruiter/create-job" 

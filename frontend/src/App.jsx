@@ -27,6 +27,7 @@ function App() {
 
             {/* Recruiter Routes */}
             <Route path="/recruiter/create-job" element={<CreateJob />} />
+            <Route path="/recruiter/edit/:id" element={<CreateJob />} />
             <Route path="/recruiter/create-company" element={<CreateCompany />} />
             <Route path="/recruiter/jobs" element={<ManageJobs />} />
           </Route>

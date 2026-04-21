@@ -5,7 +5,11 @@ const Company = db.Company;
 
 exports.createCompany = async (req, res, next) => {
   try {
-    const { name, description, website, location } = req.body;
+    let { name, description, website, location } = req.body;
+
+    if (website && !website.startsWith('http')) {
+      website = `https://${website}`;
+    }
 
     const company = await Company.create({
       name,
@@ -37,8 +41,11 @@ exports.getCompanies = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
 
     const offset = (page - 1) * limit;
+    const { createdBy } = req.query;
+    const where = createdBy ? { createdBy } : {};
 
     const companies = await Company.findAndCountAll({
+      where,
       limit,
       offset,
 

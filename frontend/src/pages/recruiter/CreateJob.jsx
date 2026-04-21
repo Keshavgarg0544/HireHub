@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Briefcase, MapPin, IndianRupee, Clock, Loader2, Plus, AlertCircle } from 'lucide-react';
-import { createJob } from '../../services/job.service';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Briefcase, MapPin, IndianRupee, Clock, Loader2, Plus, AlertCircle, Save } from 'lucide-react';
+import { createJob, getJobById, updateJob } from '../../services/job.service';
 import { getCompanies } from '../../services/company.service';
+import { getCurrentUser } from '../../services/auth.service';
 
 const CreateJob = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
+    const isEditMode = Boolean(id);
+
     const [companies, setCompanies] = useState([]);
-    const [loadingCompanies, setLoadingCompanies] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -25,22 +29,49 @@ const CreateJob = () => {
     });
 
     useEffect(() => {
-        const fetchCompanies = async () => {
+        const user = getCurrentUser();
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        const loadInitialData = async () => {
             try {
-                const response = await getCompanies();
-                setCompanies(response.data);
-                if (response.data.length > 0) {
-                    setFormData(prev => ({ ...prev, companyId: response.data[0].id }));
+                // Fetch companies owner by current user
+                const response = await getCompanies({ createdBy: user.id });
+                const companyList = response.data || [];
+                setCompanies(companyList);
+
+                // If Editing, fetch job details
+                if (isEditMode) {
+                    const jRes = await getJobById(id);
+                    const job = jRes.data;
+                    setFormData({
+                        title: job.title,
+                        description: job.description,
+                        skillsRequired: job.skillsRequired,
+                        location: job.location,
+                        employmentType: job.employmentType,
+                        experienceLevel: job.experienceLevel,
+                        salaryMin: job.salary?.min || '',
+                        salaryMax: job.salary?.max || '',
+                        applicationDeadline: job.applicationDeadline ? new Date(job.applicationDeadline).toISOString().split('T')[0] : '',
+                        companyId: job.company?.id || ''
+                    });
+                } else if (companyList.length > 0) {
+                    setFormData(prev => ({ ...prev, companyId: companyList[0].id }));
+                } else {
+                    setError('You need to create a company first before posting a job.');
                 }
             } catch (err) {
                 console.error(err);
-                setError('Failed to load companies. You need to create a company first.');
+                setError('Failed to load required data. Please ensure you have a company registered.');
             } finally {
-                setLoadingCompanies(false);
+                setLoading(false);
             }
         };
-        fetchCompanies();
-    }, []);
+        loadInitialData();
+    }, [id, isEditMode]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -58,18 +89,22 @@ const CreateJob = () => {
                 salaryMin: parseInt(formData.salaryMin),
                 salaryMax: parseInt(formData.salaryMax)
             };
-            const response = await createJob(data);
-            if (response.success) {
+            
+            if (isEditMode) {
+                await updateJob(id, data);
+                navigate(`/jobs/${id}`);
+            } else {
+                const response = await createJob(data);
                 navigate(`/jobs/${response.data.id}`);
             }
         } catch (err) {
-            setError(err.message || 'Failed to create job');
+            setError(err.message || 'Failed to save job');
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (loadingCompanies) {
+    if (loading) {
         return (
             <div className="flex justify-center py-20">
                 <Loader2 className="animate-spin h-10 w-10 text-blue-600" />
@@ -79,9 +114,13 @@ const CreateJob = () => {
 
     return (
         <div className="max-w-3xl mx-auto pb-20">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Post a New Job</h1>
-                <p className="text-gray-500 mt-1">Fill in the details to find your next great hire.</p>
+            <div className="mb-8 text-left">
+                <h1 className="text-3xl font-bold text-gray-900">
+                    {isEditMode ? 'Update Job Posting' : 'Post a New Job'}
+                </h1>
+                <p className="text-gray-500 mt-1">
+                    {isEditMode ? 'Modify the details of your existing job posting.' : 'Fill in the details to find your next great hire.'}
+                </p>
             </div>
 
             {error && (
@@ -268,10 +307,13 @@ const CreateJob = () => {
                         {submitting ? (
                             <>
                                 <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                                Posting Job...
+                                {isEditMode ? 'Saving Changes...' : 'Posting Job...'}
                             </>
                         ) : (
-                            'Create Job Posting'
+                            <>
+                                {isEditMode ? <Save className="h-5 w-5 mr-2" /> : <Plus className="h-5 w-5 mr-2" />}
+                                {isEditMode ? 'Save Changes' : 'Create Job Posting'}
+                            </>
                         )}
                     </button>
                 </div>

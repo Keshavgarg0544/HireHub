@@ -8,7 +8,7 @@ exports.applyJob = async (req, res, next) => {
   const t = await db.sequelize.transaction();
   try {
     const { jobId } = req.params;
-    const { coverLetter, resumeUrl } = req.body;
+    const { coverLetter, resumeUrl } = req.body || {};
 
     const job = await Job.findByPk(jobId, { transaction: t });
     if (!job || job.status !== "OPEN") {

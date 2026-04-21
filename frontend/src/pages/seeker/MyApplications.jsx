@@ -86,7 +86,7 @@ const MyApplications = () => {
                                         <Briefcase className="h-4 w-4 mr-1" /> {app.job?.employmentType?.replace('_', ' ')}
                                     </div>
                                     <div className="flex items-center">
-                                        <Clock className="h-4 w-4 mr-1" /> Applied on {new Date(app.createdAt).toLocaleDateString()}
+                                        <Clock className="h-4 w-4 mr-1" /> Applied on {new Date(app.appliedAt).toLocaleDateString()}
                                     </div>
                                 </div>
                             </div>

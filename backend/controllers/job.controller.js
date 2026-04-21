@@ -84,7 +84,9 @@ exports.getJobs = async (req, res, next) => {
     if (location) filter.location = location;
     if (employmentType) filter.employmentType = employmentType;
     if (experienceLevel) filter.experienceLevel = experienceLevel;
-    if (postedBy) filter.postedBy = postedBy;
+    if (postedBy) filter.postedBy = Number(postedBy);
+
+
 
     if (search) {
       filter[Op.or] = [

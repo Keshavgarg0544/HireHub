@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Briefcase, IndianRupee, Calendar, Clock, ChevronLeft, Loader2, Edit, Send } from 'lucide-react';
-import { getJobById } from '../services/job.service';
+import { getJobById, deleteJob } from '../services/job.service';
 import { getCurrentUser } from '../services/auth.service';
+import { applyToJob } from '../services/application.service';
 
 const JobDetails = () => {
     const { id } = useParams();
@@ -11,6 +12,32 @@ const JobDetails = () => {
     
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [applying, setApplying] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
+
+    const handleApply = async () => {
+        setApplying(true);
+        setMessage({ type: '', text: '' });
+        try {
+            await applyToJob(id);
+            setMessage({ type: 'success', text: 'Application submitted successfully!' });
+        } catch (err) {
+            setMessage({ type: 'error', text: err.message || 'Failed to apply' });
+        } finally {
+            setApplying(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm('Are you sure you want to delete this job posting?')) return;
+        try {
+            await deleteJob(id);
+            navigate('/recruiter/jobs');
+        } catch (error) {
+            console.error(error);
+            alert(error.message || 'Failed to delete job');
+        }
+    };
 
     // Ownership & Role detection (Exhaustive Check)
     const currentUserId = user?.id || user?._id || user?.userId;
@@ -85,22 +112,34 @@ const JobDetails = () => {
                         {isOwner ? (
                             <>
                                 <button 
+                                    onClick={() => navigate(`/recruiter/edit/${job.id}`)}
                                     className="bg-amber-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg shadow-amber-200 flex items-center"
                                 >
                                     <Edit className="h-5 w-5 mr-2" /> Edit Job
                                 </button>
                                 <button 
+                                    onClick={handleDelete}
                                     className="bg-red-50 text-red-600 px-8 py-3 rounded-xl font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
                                 >
                                     Delete Job
                                 </button>
                             </>
                         ) : isSeeker ? (
-                            <button 
-                                className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex items-center"
-                            >
-                                <Send className="h-5 w-5 mr-2" /> Apply for this Job
-                            </button>
+                            <div className="flex flex-col gap-2">
+                                <button 
+                                    onClick={handleApply}
+                                    disabled={applying}
+                                    className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex items-center disabled:bg-blue-400"
+                                >
+                                    {applying ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Send className="h-5 w-5 mr-2" />} 
+                                    {applying ? 'Applying...' : 'Apply for this Job'}
+                                </button>
+                                {message.text && (
+                                    <p className={`text-sm font-bold ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                                        {message.type === 'success' ? '✓ ' : '✕ '}{message.text}
+                                    </p>
+                                )}
+                            </div>
                         ) : isRecruiter ? (
                             <div className="bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-medium border border-gray-200 italic flex items-center">
                                 <Briefcase className="h-4 w-4 mr-2" /> Published by another Recruiter

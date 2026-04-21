@@ -1,8 +1,8 @@
 import api from './api';
 
-export const getCompanies = async () => {
+export const getCompanies = async (params) => {
     try {
-        const response = await api.get('/companies');
+        const response = await api.get('/companies', { params });
         return response.data;
     } catch (error) {
         throw error.response?.data || { message: "Failed to fetch companies" };
