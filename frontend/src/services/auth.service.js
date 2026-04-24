@@ -6,6 +6,8 @@ export const login = async (email, password) => {
         if (response.data.success && response.data.data.token) {
             localStorage.setItem('token', response.data.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.data.user));
+            // Dispatch custom event for same-tab updates
+            window.dispatchEvent(new CustomEvent('auth-change', { detail: { isAuthenticated: true } }));
         }
         return response.data;
     } catch (error) {
@@ -25,6 +27,8 @@ export const register = async (userData) => {
 export const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Dispatch custom event for same-tab updates
+    window.dispatchEvent(new CustomEvent('auth-change', { detail: { isAuthenticated: false } }));
 };
 
 export const getCurrentUser = () => {

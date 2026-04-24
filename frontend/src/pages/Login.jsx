@@ -33,8 +33,8 @@ const Login = () => {
             try {
                 const response = await login(formData.email, formData.password);
                 if (response.success) {
-                    // Navigate based on role or home
-                    navigate('/');
+                    // Navigate directly to dashboard after successful login
+                    navigate('/dashboard');
                 }
             } catch (err) {
                 setApiError(err.message || 'Login failed');

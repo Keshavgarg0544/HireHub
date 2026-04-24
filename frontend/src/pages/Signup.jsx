@@ -41,7 +41,13 @@ const Signup = () => {
                     navigate('/login');
                 }
             } catch (err) {
-                setApiError(err.message || 'Registration failed');
+                // Properly extract error message from axios response
+                const errorMsg = err.response?.data?.errors || 
+                                 err.response?.data?.message || 
+                                 err.message || 
+                                 'Registration failed';
+                setApiError(errorMsg);
+                console.error('Registration error:', err);
             } finally {
                 setLoading(false);
             }
@@ -67,7 +73,16 @@ const Signup = () => {
 
                 {apiError && (
                     <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <p className="text-sm text-red-700">{apiError}</p>
+                        <div className="flex">
+                            <div className="flex-1">
+                                <p className="text-sm text-red-700">
+                                    <strong>Error: </strong>{apiError}
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">
+                                    Check browser console (F12) for more details
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 )}
 

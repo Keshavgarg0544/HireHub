@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Briefcase, IndianRupee, Calendar, Clock, ChevronLeft, Loader2, Edit, Send } from 'lucide-react';
+import { MapPin, Briefcase, IndianRupee, Calendar, Clock, ChevronLeft, Loader2, Edit, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { getJobById, deleteJob } from '../services/job.service';
 import { getCurrentUser } from '../services/auth.service';
-import { applyToJob } from '../services/application.service';
+import { applyToJob, getMyApplications } from '../services/application.service';
 
 const JobDetails = () => {
     const { id } = useParams();
@@ -14,6 +14,8 @@ const JobDetails = () => {
     const [loading, setLoading] = useState(true);
     const [applying, setApplying] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [applicationStatus, setApplicationStatus] = useState(null); // Track user's application status
+    const [fetchingStatus, setFetchingStatus] = useState(false);
 
     const handleApply = async () => {
         setApplying(true);
@@ -21,10 +23,26 @@ const JobDetails = () => {
         try {
             await applyToJob(id);
             setMessage({ type: 'success', text: 'Application submitted successfully!' });
+            // Fetch updated status
+            await fetchApplicationStatus();
         } catch (err) {
             setMessage({ type: 'error', text: err.message || 'Failed to apply' });
         } finally {
             setApplying(false);
+        }
+    };
+
+    const fetchApplicationStatus = async () => {
+        if (user?.role !== 'JOB_SEEKER' || !id) return;
+        try {
+            setFetchingStatus(true);
+            const response = await getMyApplications();
+            const currentAppStatus = response.data.find(app => String(app.job?.id) === String(id));
+            setApplicationStatus(currentAppStatus || null);
+        } catch (error) {
+            console.error('Failed to fetch application status:', error);
+        } finally {
+            setFetchingStatus(false);
         }
     };
 
@@ -47,6 +65,37 @@ const JobDetails = () => {
     const isSeeker = user?.role === 'JOB_SEEKER';
     const isRecruiter = user?.role === 'RECRUITER';
 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'APPLIED': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+            case 'SHORTLISTED': return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'INTERVIEW': return 'bg-purple-50 text-purple-700 border-purple-200';
+            case 'HIRED': return 'bg-green-50 text-green-700 border-green-200';
+            case 'REJECTED': return 'bg-red-50 text-red-700 border-red-200';
+            default: return 'bg-gray-50 text-gray-700 border-gray-200';
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'HIRED': return <CheckCircle className="h-5 w-5" />;
+            case 'INTERVIEW': return <AlertCircle className="h-5 w-5" />;
+            case 'SHORTLISTED': return <AlertCircle className="h-5 w-5" />;
+            default: return null;
+        }
+    };
+
+    const getStatusDescription = (status) => {
+        switch (status) {
+            case 'APPLIED': return 'You applied for this job';
+            case 'SHORTLISTED': return 'Congratulations! You are shortlisted';
+            case 'INTERVIEW': return 'Interview scheduled - Check your email';
+            case 'HIRED': return 'Congratulations! You are hired!';
+            case 'REJECTED': return 'Application rejected';
+            default: return status;
+        }
+    };
+
     // Debugging logs (Mandatory per test requirements)
     if (job && !loading) {
         console.log("Job postedBy:", job.postedBy);
@@ -68,6 +117,12 @@ const JobDetails = () => {
         };
         fetchJob();
     }, [id, navigate]);
+
+    useEffect(() => {
+        if (user?.role === 'JOB_SEEKER' && id) {
+            fetchApplicationStatus();
+        }
+    }, [id, user?.id, user?.role]);
 
     if (loading) return (
         <div className="flex justify-center py-20">
@@ -108,7 +163,7 @@ const JobDetails = () => {
                     </div>
                     
                     {/* Action Buttons: Strictly Role-Based */}
-                    <div className="flex flex-wrap gap-4">
+                    <div className="flex flex-wrap gap-4 flex-col">
                         {isOwner ? (
                             <>
                                 <button 
@@ -125,21 +180,44 @@ const JobDetails = () => {
                                 </button>
                             </>
                         ) : isSeeker ? (
-                            <div className="flex flex-col gap-2">
-                                <button 
-                                    onClick={handleApply}
-                                    disabled={applying}
-                                    className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex items-center disabled:bg-blue-400"
-                                >
-                                    {applying ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Send className="h-5 w-5 mr-2" />} 
-                                    {applying ? 'Applying...' : 'Apply for this Job'}
-                                </button>
+                            <>
+                                {/* Application Status Card */}
+                                {applicationStatus && (
+                                    <div className={`p-4 rounded-xl border-2 ${getStatusColor(applicationStatus.status)}`}>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            {getStatusIcon(applicationStatus.status)}
+                                            <p className="font-bold text-lg">{applicationStatus.status}</p>
+                                        </div>
+                                        <p className="text-sm">{getStatusDescription(applicationStatus.status)}</p>
+                                        <p className="text-xs mt-2 opacity-75">Applied on {new Date(applicationStatus.appliedAt).toLocaleDateString()}</p>
+                                    </div>
+                                )}
+
+                                {/* Apply Button */}
+                                {!applicationStatus ? (
+                                    <button 
+                                        onClick={handleApply}
+                                        disabled={applying}
+                                        className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex items-center justify-center disabled:bg-blue-400"
+                                    >
+                                        {applying ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Send className="h-5 w-5 mr-2" />} 
+                                        {applying ? 'Applying...' : 'Apply for this Job'}
+                                    </button>
+                                ) : (
+                                    <button 
+                                        disabled
+                                        className="bg-gray-200 text-gray-600 px-8 py-3 rounded-xl font-bold cursor-not-allowed flex items-center justify-center"
+                                    >
+                                        <CheckCircle className="h-5 w-5 mr-2" /> Already Applied
+                                    </button>
+                                )}
+                                
                                 {message.text && (
                                     <p className={`text-sm font-bold ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
                                         {message.type === 'success' ? '✓ ' : '✕ '}{message.text}
                                     </p>
                                 )}
-                            </div>
+                            </>
                         ) : isRecruiter ? (
                             <div className="bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-medium border border-gray-200 italic flex items-center">
                                 <Briefcase className="h-4 w-4 mr-2" /> Published by another Recruiter

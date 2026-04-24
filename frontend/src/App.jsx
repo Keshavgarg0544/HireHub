@@ -1,19 +1,63 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Landing from './pages/Landing';
 import Home from './pages/Home';
+import BrowseJobs from './pages/BrowseJobs';
 import JobDetails from './pages/JobDetails';
 import CreateJob from './pages/recruiter/CreateJob';
 import CreateCompany from './pages/recruiter/CreateCompany';
 import ManageJobs from './pages/recruiter/ManageJobs';
+import JobApplications from './pages/recruiter/JobApplications';
 import MyApplications from './pages/seeker/MyApplications';
+import Inbox from './pages/seeker/Inbox';
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
+import Navbar from './components/layout/Navbar';
+import { useEffect, useState } from 'react';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check initial token on mount
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+    setLoading(false);
+
+    // Listen for storage changes (when token is added/removed from another tab)
+    const handleStorageChange = (e) => {
+      if (e.key === 'token') {
+        setIsAuthenticated(!!e.newValue);
+      }
+    };
+
+    // Listen for custom auth-change event (same tab updates)
+    const handleAuthChange = (e) => {
+      setIsAuthenticated(e.detail.isAuthenticated);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('auth-change', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
   return (
     <Router>
+      <Navbar isAuthenticated={isAuthenticated} />
       <Routes>
+        {/* Landing Page - Only show if not authenticated */}
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Landing />} />
+
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -21,15 +65,18 @@ function App() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Home />} />
+            <Route path="/browse-jobs" element={<BrowseJobs />} />
             <Route path="/jobs/:id" element={<JobDetails />} />
             <Route path="/applications" element={<MyApplications />} />
+            <Route path="/inbox" element={<Inbox />} />
 
             {/* Recruiter Routes */}
             <Route path="/recruiter/create-job" element={<CreateJob />} />
             <Route path="/recruiter/edit/:id" element={<CreateJob />} />
             <Route path="/recruiter/create-company" element={<CreateCompany />} />
             <Route path="/recruiter/jobs" element={<ManageJobs />} />
+            <Route path="/recruiter/applications/:id" element={<JobApplications />} />
           </Route>
         </Route>
 
