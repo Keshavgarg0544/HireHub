@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Lock, LogIn, Loader2 } from 'lucide-react';
+import { Mail, Lock, LogIn, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../services/auth.service';
 
@@ -33,8 +33,12 @@ const Login = () => {
             try {
                 const response = await login(formData.email, formData.password);
                 if (response.success) {
-                    // Navigate directly to dashboard after successful login
-                    navigate('/dashboard');
+                    const user = response.data?.user;
+                    if (user?.role === 'RECRUITER') {
+                        navigate('/recruiter/onboarding');
+                    } else {
+                        navigate('/dashboard');
+                    }
                 }
             } catch (err) {
                 setApiError(err.message || 'Login failed');
@@ -52,84 +56,133 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-blue-600">HireHub</h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Sign in to your account
-                    </p>
-                </div>
-
-                {apiError && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <p className="text-sm text-red-700">{apiError}</p>
-                    </div>
-                )}
-
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="rounded-md shadow-sm space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-                                    placeholder="john@example.com"
-                                />
+        <div className="min-h-screen flex bg-white">
+            {/* Left Side: Form */}
+            <div className="flex-1 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-24">
+                <div className="mx-auto w-full max-w-sm">
+                    <div className="mb-10 text-center lg:text-left">
+                        <div className="flex items-center justify-center lg:justify-start gap-2 mb-4">
+                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+                                <LogIn className="text-white w-6 h-6" />
                             </div>
-                            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                            <span className="text-2xl font-black text-slate-900 tracking-tighter">HireHub</span>
                         </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Password</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    name="password"
-                                    type="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                        </div>
+                        <h2 className="text-4xl font-black text-slate-900 mb-2">Welcome Back.</h2>
+                        <p className="text-slate-500 font-medium">Log in to your professional dashboard.</p>
                     </div>
 
-                    <div>
+                    {apiError && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                            <p className="text-sm text-red-600 font-bold">{apiError}</p>
+                        </div>
+                    )}
+
+                    <form className="space-y-6" onSubmit={handleSubmit}>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">Email Address</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600">
+                                        <Mail className="h-5 w-5 text-slate-300" />
+                                    </div>
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className={`block w-full pl-12 pr-4 py-4 bg-slate-50 border-2 rounded-2xl font-bold text-slate-900 transition-all outline-none ${errors.email ? 'border-red-100 focus:border-red-500' : 'border-transparent focus:border-blue-600 focus:bg-white focus:shadow-xl focus:shadow-blue-50'}`}
+                                        placeholder="john@example.com"
+                                    />
+                                </div>
+                                {errors.email && <p className="text-red-500 text-xs font-bold mt-2 ml-1">{errors.email}</p>}
+                            </div>
+
+                            <div>
+                                <div className="flex items-center justify-between ml-1 mb-2">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Password</label>
+                                    <a href="#" className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 transition-colors">Forgot?</a>
+                                </div>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600">
+                                        <Lock className="h-5 w-5 text-slate-300" />
+                                    </div>
+                                    <input
+                                        name="password"
+                                        type="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className={`block w-full pl-12 pr-4 py-4 bg-slate-50 border-2 rounded-2xl font-bold text-slate-900 transition-all outline-none ${errors.password ? 'border-red-100 focus:border-red-500' : 'border-transparent focus:border-blue-600 focus:bg-white focus:shadow-xl focus:shadow-blue-50'}`}
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                                {errors.password && <p className="text-red-500 text-xs font-bold mt-2 ml-1">{errors.password}</p>}
+                            </div>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors`}
+                            className="w-full flex items-center justify-center py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-50 disabled:translate-y-0"
                         >
-                            <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                                {loading ? (
-                                    <Loader2 className="h-5 w-5 text-blue-200 animate-spin" />
-                                ) : (
-                                    <LogIn className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
-                                )}
-                            </span>
-                            {loading ? 'Signing in...' : 'Sign in'}
+                            {loading ? (
+                                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                            ) : null}
+                            {loading ? 'Authenticating...' : 'Sign In to HireHub'}
                         </button>
+
+                        <div className="text-center pt-4">
+                            <p className="text-sm font-bold text-slate-500">
+                                Don't have an account?{' '}
+                                <Link to="/signup" className="text-blue-600 hover:text-blue-700 transition-colors">
+                                    Sign up now
+                                </Link>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {/* Right Side: Visual Content */}
+            <div className="hidden lg:flex flex-1 bg-slate-900 items-center justify-center p-12 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] -mr-64 -mt-64"></div>
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] -ml-64 -mb-64"></div>
+                
+                <div className="max-w-md space-y-12 relative z-10 text-center lg:text-left">
+                    <div className="space-y-6">
+                        <h3 className="text-4xl font-black text-white leading-tight">
+                            Elevate your <span className="text-blue-500">career</span> with the world's top companies.
+                        </h3>
+                        <p className="text-slate-400 font-medium text-lg">
+                            "HireHub helped me land my dream role at Stripe within 10 days. The platform is incredibly fast and professional."
+                        </p>
                     </div>
 
-                    <div className="text-center text-sm">
-                        <span className="text-gray-600">Don't have an account? </span>
-                        <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-                            Sign up here
-                        </Link>
+                    <div className="space-y-4">
+                        {[
+                            'Direct access to 5,000+ top companies',
+                            'Smart matching based on your expertise',
+                            'Real-time application status tracking'
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center gap-3 text-white font-bold text-sm">
+                                <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                                {item}
+                            </div>
+                        ))}
                     </div>
-                </form>
+
+                    <div className="pt-8">
+                        <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10 backdrop-blur-sm">
+                            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-sm">
+                                MK
+                            </div>
+                            <div>
+                                <p className="text-white font-black">Marcus Kim</p>
+                                <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Talent Lead · Stripe</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -79,7 +79,7 @@ exports.getMyApplications = async (req, res, next) => {
             {
               model: db.Company,
               as: "company",
-              attributes: ["id", "name"],
+              attributes: ["id", "name", "logoUrl"],
             },
           ],
         },
@@ -104,6 +104,7 @@ exports.getMyApplications = async (req, res, next) => {
               ? {
                   id: app.job.company.id,
                   name: app.job.company.name,
+                  logoUrl: app.job.company.logoUrl,
                 }
               : null,
           }

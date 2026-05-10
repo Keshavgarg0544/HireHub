@@ -61,17 +61,66 @@ const User = sequelize.define("User", {
     defaultValue: "JOB_SEEKER",
   },
 
- phone: {
-  type: DataTypes.STRING,
-  allowNull: true,
-  validate: {
-    isValidPhone(value) {
-      if (value && !/^[0-9]{10}$/.test(value)) {
-        throw new Error("Phone number must be 10 digits");
-      }
-    },
-  },
-},
+  phone: {
+   type: DataTypes.STRING,
+   allowNull: true,
+   validate: {
+     isValidPhone(value) {
+       if (value && !/^[0-9]{10}$/.test(value)) {
+         throw new Error("Phone number must be 10 digits");
+       }
+     },
+   },
+ },
+
+ bio: {
+   type: DataTypes.TEXT,
+   allowNull: true,
+ },
+
+ skills: {
+   type: DataTypes.JSON, // Store skills as an array/JSON
+   allowNull: true,
+   defaultValue: [],
+ },
+
+ resumeUrl: {
+   type: DataTypes.STRING,
+   allowNull: true,
+ },
+
+ resumeName: {
+   type: DataTypes.STRING,
+   allowNull: true,
+ },
+
+ profilePhotoUrl: {
+   type: DataTypes.STRING,
+   allowNull: true,
+ },
+
+ coverPhotoUrl: {
+   type: DataTypes.STRING,
+   allowNull: true,
+ },
+
+ socialLinks: {
+   type: DataTypes.JSON,
+   allowNull: true,
+   defaultValue: []
+ },
+
+ education: {
+   type: DataTypes.JSON,
+   allowNull: true,
+   defaultValue: []
+ },
+
+ experience: {
+   type: DataTypes.JSON,
+   allowNull: true,
+   defaultValue: []
+ },
 
   isActive: {
     type: DataTypes.BOOLEAN,

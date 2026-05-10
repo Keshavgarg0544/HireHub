@@ -4,8 +4,14 @@ const Company = db.Company;
 
 
 exports.createCompany = async (req, res, next) => {
+  const t = await db.sequelize.transaction();
   try {
     let { name, description, website, location } = req.body;
+    let logoUrl = req.body.logoUrl || "";
+
+    if (req.file) {
+      logoUrl = `${req.protocol}://${req.get('host')}/uploads/logos/${req.file.filename}`;
+    }
 
     if (website && !website.startsWith('http')) {
       website = `https://${website}`;
@@ -16,8 +22,19 @@ exports.createCompany = async (req, res, next) => {
       description,
       website: website || "",
       location,
+      logoUrl,
       createdBy: req.user.id,
-    });
+    }, { transaction: t });
+
+    // Instantly make the creator the COMPANY_ADMIN
+    await db.CompanyMember.create({
+      userId: req.user.id,
+      companyId: company.id,
+      role: 'COMPANY_ADMIN',
+      status: 'APPROVED'
+    }, { transaction: t });
+
+    await t.commit();
 
     res.status(201).json({
       success: true,
@@ -29,6 +46,7 @@ exports.createCompany = async (req, res, next) => {
     });
 
   } catch (error) {
+    await t.rollback();
     next(error);
   }
 };
@@ -49,13 +67,18 @@ exports.getCompanies = async (req, res, next) => {
       limit,
       offset,
 
-      attributes: ["id", "name", "location", "createdAt"],
+      attributes: ["id", "name", "location", "logoUrl", "createdAt"],
 
       include: [
         {
           model: db.User,
           as: "owner",
           attributes: ["id", "name"],
+        },
+        {
+          model: db.Job,
+          as: "jobs",
+          attributes: ["id"],
         },
       ],
 
@@ -66,12 +89,14 @@ exports.getCompanies = async (req, res, next) => {
       id: c.id,
       name: c.name,
       location: c.location,
+      logoUrl: c.logoUrl,
       owner: c.owner
         ? {
             id: c.owner.id,
             name: c.owner.name,
           }
         : null,
+      jobsCount: c.jobs ? c.jobs.length : 0,
       createdAt: c.createdAt,
     }));
 
@@ -102,7 +127,7 @@ exports.getCompanyById = async (req, res, next) => {
     }
 
     const company = await Company.findByPk(id, {
-      attributes: ["id", "name", "description", "website", "location"],
+      attributes: ["id", "name", "description", "website", "location", "logoUrl", "createdAt"],
 
       include: [
         {
@@ -133,6 +158,7 @@ exports.getCompanyById = async (req, res, next) => {
         description: company.description,
         website: company.website || "",
         location: company.location,
+        logoUrl: company.logoUrl || "",
         owner: company.owner
           ? {
               id: company.owner.id,
@@ -151,6 +177,39 @@ exports.getCompanyById = async (req, res, next) => {
       },
     });
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateCompany = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const { name, description, website, location } = req.body;
+    let logoUrl = req.body.logoUrl;
+
+    if (req.file) {
+      logoUrl = `${req.protocol}://${req.get('host')}/uploads/logos/${req.file.filename}`;
+    }
+
+    const company = await Company.findByPk(id);
+    if (!company) {
+      return res.status(404).json({ success: false, message: "Company not found" });
+    }
+
+    if (name) company.name = name;
+    if (description) company.description = description;
+    if (website !== undefined) company.website = website;
+    if (location) company.location = location;
+    if (logoUrl !== undefined) company.logoUrl = logoUrl;
+
+    await company.save();
+
+    res.json({
+      success: true,
+      message: "Company updated successfully",
+      data: company
+    });
   } catch (error) {
     next(error);
   }

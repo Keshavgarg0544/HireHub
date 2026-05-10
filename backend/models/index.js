@@ -4,6 +4,7 @@ const User = require("./user.model");
 const Company = require("./company.model");
 const Job = require("./job.model");
 const Application = require("./application.model");
+const CompanyMember = require("./companyMember.model");
 
 const db = {};
 
@@ -12,6 +13,52 @@ db.User = User;
 db.Company = Company;
 db.Job = Job;
 db.Application = Application;
+db.CompanyMember = CompanyMember;
+
+// ==========================================
+// NEW MEMBERSHIP ASSOCIATIONS (PHASE 4)
+// ==========================================
+
+// 1. User <-> Company (Many-to-Many via CompanyMember)
+// A user can be a member of many companies
+User.belongsToMany(Company, {
+  through: CompanyMember,
+  foreignKey: "userId",
+  otherKey: "companyId",
+  as: "memberCompanies",
+});
+
+// A company can have many users (members)
+Company.belongsToMany(User, {
+  through: CompanyMember,
+  foreignKey: "companyId",
+  otherKey: "userId",
+  as: "members",
+});
+
+// 2. Direct relations to the Pivot Table
+// This allows us to query CompanyMember directly and include the User/Company data
+CompanyMember.belongsTo(User, {
+  foreignKey: "userId",
+  as: "user",
+});
+User.hasMany(CompanyMember, {
+  foreignKey: "userId",
+  as: "memberships",
+});
+
+CompanyMember.belongsTo(Company, {
+  foreignKey: "companyId",
+  as: "company",
+});
+Company.hasMany(CompanyMember, {
+  foreignKey: "companyId",
+  as: "companyMemberships",
+});
+
+// ==========================================
+// OLD LEGACY ASSOCIATIONS (Do not touch yet)
+// ==========================================
 
 
 User.hasMany(Job, {

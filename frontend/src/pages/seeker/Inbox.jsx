@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, CheckCircle, Clock, AlertCircle, Trash2, Loader2, Bell } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+    Mail, CheckCircle, Clock, AlertCircle, Trash2, Loader2, 
+    Bell, Zap, Star, ChevronRight, Inbox as InboxIcon,
+    Filter, ArrowRight, Briefcase
+} from 'lucide-react';
 import { getMyApplications } from '../../services/application.service';
 
 const Inbox = () => {
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('ALL'); // ALL, UNREAD, UPDATES
+    const [filter, setFilter] = useState('ALL');
 
     useEffect(() => {
         const fetchNotifications = async () => {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user?.role === 'RECRUITER') {
+                setLoading(false);
+                return;
+            }
+            
             try {
                 const response = await getMyApplications();
                 const apps = response.data;
                 
-                // Create notifications from applications
                 const notifs = apps
                     .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt))
                     .map(app => ({
@@ -23,9 +33,10 @@ const Inbox = () => {
                         jobId: app.job?.id,
                         title: app.job?.title,
                         company: app.job?.company?.name,
+                        logoUrl: app.job?.company?.logoUrl,
                         status: app.status,
                         timestamp: new Date(app.appliedAt),
-                        read: app.status === 'APPLIED', // Assume only new status updates are unread
+                        read: app.status === 'APPLIED',
                         type: getNotificationType(app.status),
                     }))
                     .reverse();
@@ -50,47 +61,38 @@ const Inbox = () => {
         }
     };
 
-    const getNotificationIcon = (type) => {
+    const getTheme = (type) => {
         switch (type) {
-            case 'SHORTLIST': return <AlertCircle className="h-5 w-5 text-blue-600" />;
-            case 'INTERVIEW': return <Clock className="h-5 w-5 text-purple-600" />;
-            case 'HIRED': return <CheckCircle className="h-5 w-5 text-green-600" />;
-            case 'REJECTED': return <AlertCircle className="h-5 w-5 text-red-600" />;
-            default: return <Bell className="h-5 w-5 text-gray-600" />;
+            case 'SHORTLIST': return { icon: Star, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', shadow: 'shadow-blue-100' };
+            case 'INTERVIEW': return { icon: Zap, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', shadow: 'shadow-purple-100' };
+            case 'HIRED': return { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', shadow: 'shadow-emerald-100' };
+            case 'REJECTED': return { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', shadow: 'shadow-red-100' };
+            default: return { icon: Bell, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100', shadow: 'shadow-slate-100' };
         }
     };
 
-    const getNotificationTitle = (type, company, title) => {
+    const getTitle = (type, company) => {
         switch (type) {
-            case 'SHORTLIST': return `Congratulations! You're shortlisted at ${company}`;
-            case 'INTERVIEW': return `Interview scheduled at ${company}`;
-            case 'HIRED': return `You're hired! 🎉 ${company}`;
-            case 'REJECTED': return `Application rejected from ${company}`;
-            default: return `New update from ${company}`;
+            case 'SHORTLIST': return `Shortlisted by ${company}`;
+            case 'INTERVIEW': return `Interview Invitation: ${company}`;
+            case 'HIRED': return `Congratulations, you're hired! 🎉`;
+            case 'REJECTED': return `Application Status Update`;
+            default: return `Update from ${company}`;
         }
     };
 
-    const getNotificationMessage = (type) => {
+    const getMessage = (type, company, jobTitle) => {
         switch (type) {
-            case 'SHORTLIST': return 'You passed the initial screening. The next step is an interview.';
-            case 'INTERVIEW': return 'You have been selected for an interview. Check your email for details.';
-            case 'HIRED': return 'Great news! You have been hired. Congratulations on the new opportunity!';
-            case 'REJECTED': return 'Unfortunately, your application was not selected. Keep trying!';
-            default: return 'There is an update on your application.';
+            case 'SHORTLIST': return `Great news! Your application for ${jobTitle} at ${company} has been shortlisted.`;
+            case 'INTERVIEW': return `${company} would like to interview you for the ${jobTitle} position.`;
+            case 'HIRED': return `You've been selected for the ${jobTitle} role at ${company}. Welcome aboard!`;
+            case 'REJECTED': return `Thank you for your interest in the ${jobTitle} role at ${company}. Unfortunately, it wasn't a match.`;
+            default: return `There's a new update regarding your application for ${jobTitle} at ${company}.`;
         }
     };
 
-    const getNotificationColor = (type) => {
-        switch (type) {
-            case 'SHORTLIST': return 'bg-blue-50 border-blue-200';
-            case 'INTERVIEW': return 'bg-purple-50 border-purple-200';
-            case 'HIRED': return 'bg-green-50 border-green-200';
-            case 'REJECTED': return 'bg-red-50 border-red-200';
-            default: return 'bg-gray-50 border-gray-200';
-        }
-    };
-
-    const handleDelete = (id) => {
+    const handleDelete = (id, e) => {
+        e.stopPropagation();
         setNotifications(notifications.filter(n => n.id !== id));
     };
 
@@ -105,110 +107,131 @@ const Inbox = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center py-20">
-                <Loader2 className="animate-spin h-10 w-10 text-blue-600" />
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="space-y-4 text-center">
+                    <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto" />
+                    <p className="text-slate-500 font-black text-xs uppercase tracking-widest">Opening inbox...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto pb-20">
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <Mail className="h-8 w-8 text-blue-600" />
-                    <h1 className="text-3xl font-bold text-gray-900">Inbox</h1>
-                </div>
-                <p className="text-gray-500">Updates on your job applications and interviews</p>
-            </div>
-
-            {/* Filter Buttons */}
-            <div className="flex gap-3 mb-6 flex-wrap">
-                <button
-                    onClick={() => setFilter('ALL')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        filter === 'ALL' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                    All ({notifications.length})
-                </button>
-                <button
-                    onClick={() => setFilter('UNREAD')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        filter === 'UNREAD' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                    Unread {unreadCount > 0 && `(${unreadCount})`}
-                </button>
-                <button
-                    onClick={() => setFilter('UPDATES')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        filter === 'UPDATES' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                    Important Updates
-                </button>
-            </div>
-
-            {/* Notifications List */}
-            {filteredNotifications.length === 0 ? (
-                <div className="bg-white p-16 rounded-2xl border border-dashed border-gray-300 text-center">
-                    <div className="bg-gray-100 p-4 rounded-full inline-block mb-4">
-                        <Bell className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">No notifications</h3>
-                    <p className="text-gray-500 mt-2">You're all caught up!</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {filteredNotifications.map((notif) => (
-                        <div
-                            key={notif.id}
-                            className={`p-6 rounded-2xl border-2 transition-all hover:shadow-md cursor-pointer ${getNotificationColor(notif.type)} ${!notif.read ? 'border-l-4' : 'border'}`}
-                        >
-                            <div className="flex items-start gap-4">
-                                <div className="pt-1 flex-shrink-0">
-                                    {getNotificationIcon(notif.type)}
-                                </div>
-                                
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-bold text-gray-900">
-                                        {getNotificationTitle(notif.type, notif.company, notif.title)}
-                                    </h3>
-                                    <p className="text-gray-600 mt-2">
-                                        {getNotificationMessage(notif.type)}
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-4">
-                                        <p className="text-sm text-gray-500">
-                                            {notif.title} • {notif.timestamp.toLocaleDateString()}
-                                        </p>
-                                        {notif.jobId && (
-                                            <Link 
-                                                to={`/jobs/${notif.jobId}`}
-                                                className="text-sm text-blue-600 font-medium hover:underline"
-                                            >
-                                                View Job →
-                                            </Link>
-                                        )}
-                                    </div>
-                                </div>
-                                
-                                <button
-                                    onClick={() => handleDelete(notif.id)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
-                                >
-                                    <Trash2 className="h-5 w-5" />
-                                </button>
+        <div className="min-h-screen bg-white pb-32">
+            {/* Header */}
+            <section className="pt-20 pb-12 bg-slate-50 border-b border-slate-100">
+                <div className="max-w-4xl mx-auto px-6">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                                <Bell className="w-3 h-3" />
+                                <span>Notifications</span>
                             </div>
+                            <h1 className="text-5xl font-black text-slate-900 leading-tight">Your <span className="text-blue-600">Inbox.</span></h1>
+                            <p className="text-slate-500 font-medium text-lg max-w-md">Stay updated on your application status and interview requests.</p>
                         </div>
+                        
+                        <div className="bg-white px-6 py-4 rounded-3xl border border-slate-100 shadow-sm">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 leading-none">Unread</p>
+                            <p className="text-3xl font-black text-blue-600 leading-none">{unreadCount}</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div className="max-w-4xl mx-auto px-6 pt-12">
+                {/* Filters */}
+                <div className="flex gap-3 mb-10 overflow-x-auto pb-2 scrollbar-hide">
+                    {[
+                        { id: 'ALL', label: 'All Activity', count: notifications.length },
+                        { id: 'UNREAD', label: 'Unread', count: unreadCount },
+                        { id: 'UPDATES', label: 'Priority', count: notifications.filter(n => n.type !== 'UPDATE').length }
+                    ].map((btn) => (
+                        <button
+                            key={btn.id}
+                            onClick={() => setFilter(btn.id)}
+                            className={`px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-3 ${
+                                filter === btn.id 
+                                    ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' 
+                                    : 'bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                            }`}
+                        >
+                            {btn.label}
+                            <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${filter === btn.id ? 'bg-white/20' : 'bg-slate-200 text-slate-500'}`}>
+                                {btn.count}
+                            </span>
+                        </button>
                     ))}
                 </div>
-            )}
+
+                {/* Notifications List */}
+                {filteredNotifications.length === 0 ? (
+                    <div className="py-32 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200 text-center space-y-6">
+                        <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center mx-auto text-slate-200">
+                            <InboxIcon className="h-10 w-10" />
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="text-xl font-black text-slate-900">Your inbox is clear.</h3>
+                            <p className="text-slate-500 font-medium">We'll notify you as soon as there's an update on your applications.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {filteredNotifications.map((notif) => {
+                            const theme = getTheme(notif.type);
+                            const Icon = theme.icon;
+                            return (
+                                <div
+                                    key={notif.id}
+                                    onClick={() => notif.jobId && navigate(`/jobs/${notif.jobId}`)}
+                                    className={`group p-8 rounded-[2.5rem] border transition-all cursor-pointer relative overflow-hidden flex flex-col md:flex-row gap-6 items-start ${notif.read ? 'bg-white border-slate-50 hover:border-blue-100 hover:shadow-2xl hover:shadow-slate-100' : 'bg-white border-blue-100 shadow-xl shadow-blue-50/50'}`}
+                                >
+                                    <div className={`w-14 h-14 ${theme.bg} ${theme.border} border-2 rounded-2xl flex items-center justify-center ${theme.color} flex-shrink-0 group-hover:scale-110 transition-transform overflow-hidden bg-white`}>
+                                        {notif.logoUrl ? (
+                                            <img src={notif.logoUrl} alt={notif.company} className="w-full h-full object-contain p-2" />
+                                        ) : (
+                                            <Icon className="w-6 h-6" />
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                            <h3 className={`text-xl font-black ${notif.read ? 'text-slate-900' : 'text-blue-600'}`}>
+                                                {getTitle(notif.type, notif.company)}
+                                            </h3>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                                {notif.timestamp.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                        <p className="text-slate-500 font-medium leading-relaxed max-w-2xl">
+                                            {getMessage(notif.type, notif.company, notif.title)}
+                                        </p>
+                                        
+                                        <div className="pt-4 flex items-center gap-4">
+                                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                <Briefcase className="w-3 h-3" />
+                                                {notif.title}
+                                            </div>
+                                            {notif.jobId && (
+                                                <div className="text-xs font-black text-blue-600 hover:text-blue-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                                    View Details <ArrowRight className="w-3.5 h-3.5" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={(e) => handleDelete(notif.id, e)}
+                                        className="absolute top-8 right-8 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

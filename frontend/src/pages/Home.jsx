@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, MapPin, Briefcase, Plus, TrendingUp, Users, ChevronRight, Loader2, Inbox, ListTodo } from 'lucide-react';
+import { 
+    Search, MapPin, Briefcase, Plus, TrendingUp, Users, 
+    ChevronRight, Inbox, ListTodo, Star, CheckCircle2, 
+    ArrowRight, Building2, Zap, ShieldCheck, Globe
+} from 'lucide-react';
 import { getJobs } from '../services/job.service';
 import { getMyApplications } from '../services/application.service';
 import { getCurrentUser } from '../services/auth.service';
@@ -11,542 +15,362 @@ const Home = () => {
     const [jobs, setJobs] = useState([]);
     const [appliedJobs, setAppliedJobs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('BROWSE'); // BROWSE or APPLIED for job seekers
+    const [activeTab, setActiveTab] = useState('BROWSE'); 
     const [filters, setFilters] = useState({
         search: '',
         location: '',
         employmentType: ''
     });
 
-    const fetchJobs = async () => {
-        setLoading(true);
+    const fetchJobs = useCallback(async (filterObj) => {
         try {
-            const response = await getJobs(filters);
+            const response = await getJobs(filterObj);
             setJobs(response.data);
+            localStorage.setItem('cachedJobs', JSON.stringify(response.data));
         } catch (error) {
             console.error(error);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchAppliedJobs = async () => {
+    const fetchAppliedJobs = useCallback(async () => {
         try {
             const response = await getMyApplications();
             setAppliedJobs(response.data);
         } catch (error) {
             console.error(error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        const cached = localStorage.getItem('cachedJobs');
+        if (cached) {
+            try {
+                setJobs(JSON.parse(cached));
+            } catch (e) {
+                console.error('Cache parse error:', e);
+            }
+        }
+        setLoading(true);
+        const initialFilters = { search: '', location: '', employmentType: '' };
+        if (user?.role === 'RECRUITER') {
+            initialFilters.postedBy = user.id;
+        }
+        fetchJobs(initialFilters);
+        if (user?.role === 'JOB_SEEKER') {
+            fetchAppliedJobs();
+        }
+    }, [user?.id, user?.role, fetchJobs, fetchAppliedJobs]);
 
     useEffect(() => {
         const delaySearch = setTimeout(() => {
-            fetchJobs();
-        }, 500);
+            setLoading(true);
+            fetchJobs(filters);
+        }, 300);
         return () => clearTimeout(delaySearch);
-    }, [filters]);
-
-    useEffect(() => {
-        if (user?.role === 'JOB_SEEKER') {
-            fetchAppliedJobs();
-        } else if (user?.role === 'RECRUITER' && !filters.postedBy) {
-            // For recruiters, filter jobs to show only their postings (only set once)
-            setFilters(prev => ({ ...prev, postedBy: user.id }));
-        }
-    }, [user?.id, user?.role]);
+    }, [filters, fetchJobs]);
 
     const stats = [
-        { number: '84K+', label: 'Active job listings' },
-        { number: '23K+', label: 'Verified companies' },
-        { number: '1.2M', label: 'Successful hires' },
-        { number: '96%', label: 'Satisfaction rate' }
+        { number: '84K+', label: 'Active Jobs', icon: Briefcase, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+        { number: '23K+', label: 'Verified Companies', icon: Building2, color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
+        { number: '1.2M', label: 'Successful Hires', icon: Users, color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
+        { number: '96%', label: 'Retention Rate', icon: ShieldCheck, color: 'text-amber-600', bgColor: 'bg-amber-50' }
     ];
 
     const categories = [
-        { icon: '💻', name: 'Technology', count: '18,432 open roles' },
-        { icon: '✏️', name: 'Design & Creative', count: '7,210 open roles' },
-        { icon: '📊', name: 'Finance', count: '9,840 open roles' },
-        { icon: '👨‍⚕️', name: 'Healthcare', count: '11,300 open roles' },
-        { icon: '📣', name: 'Marketing', count: '5,670 open roles' },
-        { icon: '⚙️', name: 'Engineering', count: '14,920 open roles' },
-        { icon: '🏫', name: 'Education', count: '4,100 open roles' },
-        { icon: '📋', name: 'Legal & Compliance', count: '3,580 open roles' }
+        { icon: '💻', name: 'Technology', count: '18k+ roles', color: 'bg-blue-50' },
+        { icon: '✏️', name: 'Design', count: '7k+ roles', color: 'bg-purple-50' },
+        { icon: '📊', name: 'Finance', count: '9k+ roles', color: 'bg-emerald-50' },
+        { icon: '📣', name: 'Marketing', count: '5k+ roles', color: 'bg-amber-50' },
+        { icon: '⚙️', name: 'Engineering', count: '14k+ roles', color: 'bg-rose-50' },
+        { icon: '⚖️', name: 'Legal', count: '3k+ roles', color: 'bg-slate-50' }
+    ];
+
+    const companies = [
+        { name: 'Google', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg' },
+        { name: 'Microsoft', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg' },
+        { name: 'Amazon', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg' },
+        { name: 'Apple', logo: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg' },
+        { name: 'Meta', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg' }
     ];
 
     const testimonials = [
         {
-            stars: 5,
-            text: '"Found my dream role as a UX lead in under two weeks. The job matching is impressively accurate — it actually read my profile."',
-            name: 'Priya Rao',
-            role: 'UX Lead · Dropbox',
-            avatar: 'PR',
-            bgColor: 'bg-indigo-600'
+            text: "Found my dream role at Dropbox within 2 weeks. The matching algorithm is actually scary good.",
+            name: "Priya Rao",
+            role: "Product Designer",
+            avatar: "PR",
+            color: "bg-indigo-600"
         },
         {
-            stars: 5,
-            text: '"As a recruiter, HireHub cuts my sourcing time in half. The quality of applicants is genuinely much higher than any platform I\'ve used before."',
-            name: 'Marcus Kim',
-            role: 'Talent Lead · Stripe',
-            avatar: 'MK',
-            bgColor: 'bg-blue-400',
-            featured: true
-        },
-        {
-            stars: 5,
-            text: '"We posted our first listing and had 40+ qualified applicants in 3 days. The platform is clean, fast, and the team is super responsive."',
-            name: 'Sara Chen',
-            role: 'CEO · BuildFast',
-            avatar: 'SC',
-            bgColor: 'bg-green-600'
+            text: "HireHub is the first platform where I actually got responses from real humans, not bots.",
+            name: "Alex Chen",
+            role: "Senior Dev",
+            avatar: "AC",
+            color: "bg-blue-600"
         }
     ];
 
-    const heroJobs = jobs.slice(0, 3).map((job, index) => ({
-        id: job.id,
-        company: job.company?.name || 'Company',
-        logo: (job.company?.name || 'C').charAt(0).toUpperCase(),
-        bgColor: ['bg-blue-600', 'bg-teal-600', 'bg-purple-700'][index],
-        title: job.title,
-        location: job.location,
-        tags: job.skillsRequired && job.skillsRequired.trim() ? job.skillsRequired.split(',').slice(0, 3).map(s => s.trim()) : [],
-        salary: job.salary ? `₹${job.salary.min}–${job.salary.max}` : 'Competitive',
-        featured: index === 0
-    }));
+    const heroJobs = jobs.slice(0, 3);
 
-    // RECRUITER DASHBOARD
-    if (user?.role === 'RECRUITER') {
-        return (
-            <div className="space-y-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-gray-900">🏢 Recruiter Dashboard</h1>
-                        <p className="text-gray-500 mt-1">Manage your postings, track applications, and find the best talent.</p>
-                    </div>
-                    <Link to="/recruiter/create-job" className="flex items-center bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-shadow shadow-lg shadow-blue-100">
-                        <Plus className="h-5 w-5 mr-2" /> Post New Job
-                    </Link>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 p-6 rounded-xl">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-600 text-sm font-medium">Active Jobs</p>
-                                <p className="text-3xl font-bold text-gray-900 mt-1">{jobs.filter(j => j.status === 'OPEN').length}</p>
-                            </div>
-                            <Briefcase className="h-12 w-12 text-blue-600 opacity-20" />
-                        </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 p-6 rounded-xl">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-600 text-sm font-medium">Total Views</p>
-                                <p className="text-3xl font-bold text-gray-900 mt-1">2,340</p>
-                            </div>
-                            <TrendingUp className="h-12 w-12 text-green-600 opacity-20" />
-                        </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 p-6 rounded-xl">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-600 text-sm font-medium">Applications</p>
-                                <p className="text-3xl font-bold text-gray-900 mt-1">156</p>
-                            </div>
-                            <Users className="h-12 w-12 text-purple-600 opacity-20" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">Your Job Postings</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {jobs.length > 0 ? jobs.map((job) => (
-                            <div key={job.id} className="border border-gray-200 p-6 rounded-xl hover:shadow-md transition-all cursor-pointer group">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors flex-1">{job.title}</h3>
-                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold ml-2">Active</span>
-                                </div>
-                                <p className="text-blue-600 font-medium text-sm mb-3">{job.company?.name || 'Confidential'}</p>
-                                <div className="space-y-2 text-sm text-gray-500 mb-4">
-                                    <div className="flex items-center"><MapPin className="h-4 w-4 mr-2" /> {job.location}</div>
-                                    <div className="flex items-center"><Briefcase className="h-4 w-4 mr-2" /> {job.employmentType?.replace('_', ' ')}</div>
-                                </div>
-                                <button onClick={() => navigate(`/recruiter/applications/${job.id}`)} className="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all">View Applications</button>
-                            </div>
-                        )) : (
-                            <div className="col-span-full text-center py-12 text-gray-500">
-                                <p className="text-lg font-medium mb-2">No jobs posted yet</p>
-                                <p className="text-sm">Start by posting your first job to attract talent!</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // JOB SEEKER - COMPLETE LANDING PAGE STYLE
     return (
-        <div className="w-full bg-white -mx-4 -my-8">
-            {/* Hero Section */}
-            <section className="relative overflow-hidden pt-16 pb-12 px-6">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-30 -z-10"></div>
-
-                <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full mb-6">
-                            <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
-                            Welcome back! 👋
-                        </div>
-
-                        <h1 className="text-5xl font-bold leading-tight mb-4 text-gray-900">
-                            Find the job you<br />were <em className="italic text-blue-600">meant</em> to do.
-                        </h1>
-
-                        <p className="text-lg text-gray-600 leading-relaxed mb-6 max-w-md">
-                            Continue your journey with HireHub. Explore thousands of opportunities from exceptional companies.
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                            <button onClick={() => navigate('/applications')} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                                My Applications →
-                            </button>
-                            <button onClick={() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})} className="px-6 py-3 border-2 border-gray-300 text-gray-900 font-semibold rounded-full hover:border-blue-600 hover:text-blue-600 transition flex items-center justify-center gap-2">
-                                Explore Jobs
-                            </button>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <div className="flex -space-x-2">
-                                <div className="w-9 h-9 bg-indigo-600 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white">PK</div>
-                                <div className="w-9 h-9 bg-cyan-600 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white">MR</div>
-                                <div className="w-9 h-9 bg-green-600 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white">SL</div>
-                                <div className="w-9 h-9 bg-amber-600 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white">AT</div>
+        <div className="min-h-screen bg-white">
+            {/* 1. HERO SECTION */}
+            <section className="relative pt-20 pb-32 overflow-hidden">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        <div className="space-y-8">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-sm font-bold animate-fade-in">
+                                <Zap className="w-4 h-4" />
+                                <span>Trusted by 2M+ job seekers worldwide</span>
                             </div>
-                            <p className="text-sm text-gray-600"><strong className="text-gray-900">40,000+</strong> people hired this month</p>
-                        </div>
-                    </div>
+                            
+                            <h1 className="text-6xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                                Find the <span className="text-blue-600 underline decoration-blue-100 decoration-8 underline-offset-4">perfect</span> job for your future.
+                            </h1>
+                            
+                            <p className="text-xl text-slate-500 max-w-xl leading-relaxed font-medium">
+                                HireHub connects the world's most ambitious talent with the most innovative companies on the planet.
+                            </p>
 
-                    <div className="space-y-4">
-                        {heroJobs.length > 0 ? heroJobs.map((job, i) => (
-                            <div key={job.id} onClick={() => navigate(`/jobs/${job.id}`)} className={`p-5 rounded-2xl border-2 transition hover:shadow-lg cursor-pointer ${job.featured ? 'border-blue-600 bg-gradient-to-br from-blue-50 to-blue-25' : 'border-gray-200 bg-white hover:border-blue-300'}`}>
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex gap-3">
-                                        <div className={`w-12 h-12 ${job.bgColor} rounded-xl flex items-center justify-center font-bold text-white flex-shrink-0`}>
-                                            {job.logo}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-gray-900">{job.title}</div>
-                                            <div className="text-sm text-gray-500">{job.company} · {job.location}</div>
-                                        </div>
-                                    </div>
-                                    {job.featured && <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Featured</span>}
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <input 
+                                        type="text"
+                                        placeholder="Job title or keywords..."
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 transition-all shadow-sm"
+                                        value={filters.search}
+                                        onChange={(e) => setFilters({...filters, search: e.target.value})}
+                                    />
                                 </div>
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                    {job.tags.map((tag, j) => (
-                                        <span key={j} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                            {tag}
-                                        </span>
+                                <button className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all active:scale-95">
+                                    Search Jobs
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-6 pt-4">
+                                <div className="flex -space-x-3">
+                                    {[1, 2, 3, 4].map(i => (
+                                        <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-black overflow-hidden shadow-sm">
+                                            <img src={`https://i.pravatar.cc/100?u=${i}`} alt="User" />
+                                        </div>
                                     ))}
                                 </div>
-                                <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                                    <div className="font-bold text-gray-900">{job.salary} <span className="text-xs text-gray-500 font-normal">/ yr</span></div>
-                                    <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full hover:bg-blue-700 transition font-semibold">
-                                        Apply Now
-                                    </button>
-                                </div>
+                                <p className="text-sm text-slate-500 font-bold">
+                                    <span className="text-slate-900 font-black">40,000+</span> people hired this month
+                                </p>
                             </div>
-                        )) : (
-                            <div className="text-center py-8 text-gray-500">
-                                <p className="text-sm">Loading recent jobs...</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section>
-
-            {/* Stats Band */}
-            <div className="bg-gray-900 text-white">
-                <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4 py-8 px-6">
-                    {stats.map((stat, i) => (
-                        <div key={i} className="text-center border-r border-gray-700 last:border-r-0">
-                            <div className="text-4xl font-bold font-serif mb-2">{stat.number}</div>
-                            <div className="text-sm text-gray-400">{stat.label}</div>
                         </div>
-                    ))}
-                </div>
-            </div>
 
-            {/* Tabs for Job Seeker */}
-            {user?.role === 'JOB_SEEKER' && (
-                <div className="bg-white border-b border-gray-200 px-6">
-                    <div className="max-w-7xl mx-auto flex gap-8">
-                        <button
-                            onClick={() => setActiveTab('BROWSE')}
-                            className={`py-4 px-2 font-semibold border-b-2 transition-colors ${
-                                activeTab === 'BROWSE'
-                                    ? 'border-blue-600 text-blue-600'
-                                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <Search className="h-5 w-5" />
-                                Browse All Jobs
-                            </div>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('APPLIED')}
-                            className={`py-4 px-2 font-semibold border-b-2 transition-colors ${
-                                activeTab === 'APPLIED'
-                                    ? 'border-blue-600 text-blue-600'
-                                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <ListTodo className="h-5 w-5" />
-                                Applied Jobs ({appliedJobs.length})
-                            </div>
-                        </button>
-                        <button
-                            onClick={() => navigate('/inbox')}
-                            className="py-4 px-2 font-semibold text-gray-600 hover:text-blue-600 transition-colors ml-auto flex items-center gap-2"
-                        >
-                            <Inbox className="h-5 w-5" />
-                            Inbox
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Search Section */}
-            {activeTab === 'BROWSE' && (
-            <section className="bg-gray-50 border-b border-gray-200 py-12 px-6">
-                <div className="max-w-4xl mx-auto">
-                    <div className="mb-6">
-                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Quick Search</p>
-                        <h2 className="text-3xl font-bold text-gray-900 mt-1">Find your next opportunity</h2>
-                    </div>
-
-                    <div className="bg-white border border-gray-300 rounded-2xl p-2 flex items-center gap-2 mb-4">
-                        <Search className="w-5 h-5 text-gray-400 ml-3 flex-shrink-0" />
-                        <input 
-                            type="text" 
-                            placeholder="Job title, skill, or keyword..." 
-                            className="flex-1 border-none outline-none bg-transparent text-gray-900" 
-                            value={filters.search}
-                            onChange={(e) => setFilters({...filters, search: e.target.value})}
-                        />
-                        <div className="w-px h-7 bg-gray-200"></div>
-                        <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        <input 
-                            type="text" 
-                            placeholder="City or Remote" 
-                            className="w-40 border-none outline-none bg-transparent text-gray-900" 
-                            value={filters.location}
-                            onChange={(e) => setFilters({...filters, location: e.target.value})}
-                        />
-                        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition flex-shrink-0">
-                            Search
-                        </button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-3">
-                        {['All Types', 'Remote', 'Full-time', 'Part-time', 'Freelance'].map((type, i) => (
-                            <button key={i} className={`px-4 py-2 rounded-full text-sm font-medium transition ${i === 0 ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:border-blue-600'}`}>
-                                {type}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        <p className="text-sm text-gray-600 font-medium">Popular:</p>
-                        {['UI/UX Designer', 'Software Engineer', 'Product Manager', 'Data Analyst'].map((tag, i) => (
-                            <button key={i} className="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full hover:bg-blue-200 transition font-semibold">
-                                {tag}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </section>
-            )}
-
-            {/* Applied Jobs Section */}
-            {user?.role === 'JOB_SEEKER' && activeTab === 'APPLIED' && (
-            <section className="bg-gray-50 py-16 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="mb-10">
-                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Your Progress</p>
-                        <h2 className="text-3xl font-bold text-gray-900 mt-1">Track your applications</h2>
-                    </div>
-
-                    {appliedJobs.length === 0 ? (
-                        <div className="bg-white p-16 rounded-2xl border border-dashed border-gray-300 text-center">
-                            <div className="bg-gray-100 p-4 rounded-full inline-block mb-4">
-                                <ListTodo className="h-8 w-8 text-gray-400" />
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900">No applications yet</h3>
-                            <p className="text-gray-500 mt-2 mb-6">Start applying to jobs to track your progress here</p>
-                            <button onClick={() => setActiveTab('BROWSE')} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold">
-                                Browse Jobs
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {appliedJobs.map((app) => (
-                                <div key={app.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                                    <div className="flex flex-col lg:flex-row justify-between gap-6">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-xl font-bold text-gray-900">{app.job?.title}</h3>
-                                                <span className={`text-xs font-bold px-3 py-1 rounded-full inline-flex items-center gap-1.5 border ${
-                                                    app.status === 'HIRED' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                    app.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200' :
-                                                    app.status === 'INTERVIEW' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                                    app.status === 'SHORTLISTED' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                    'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                                }`}>
-                                                    {app.status}
-                                                </span>
-                                            </div>
-                                            <p className="text-blue-600 font-semibold text-lg mb-3">{app.job?.company?.name}</p>
-                                            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                                                <div className="flex items-center"><MapPin className="h-4 w-4 mr-1.5" /> {app.job?.location}</div>
-                                                <div className="flex items-center"><Briefcase className="h-4 w-4 mr-1.5" /> {app.job?.employmentType?.replace('_', ' ')}</div>
+                        <div className="hidden lg:block relative">
+                            <div className="absolute inset-0 bg-blue-600/5 rounded-[3rem] -rotate-3 scale-105"></div>
+                            <div className="relative space-y-4">
+                                {loading ? (
+                                    Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="bg-white p-6 rounded-[2rem] shadow-2xl border border-slate-50 animate-pulse">
+                                            <div className="flex gap-4">
+                                                <div className="w-14 h-14 bg-slate-100 rounded-2xl"></div>
+                                                <div className="flex-1 space-y-2 pt-2">
+                                                    <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+                                                    <div className="h-3 bg-slate-100 rounded w-1/3"></div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <Link 
-                                            to={`/jobs/${app.job?.id}`}
-                                            className="flex items-center justify-center text-blue-600 font-bold px-6 py-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all whitespace-nowrap"
+                                    ))
+                                ) : (
+                                    heroJobs.map((job, i) => (
+                                        <div 
+                                            key={job.id} 
+                                            onClick={() => navigate(`/jobs/${job.id}`)}
+                                            className="bg-white p-6 rounded-[2rem] shadow-2xl border border-slate-50 transition-all cursor-pointer group"
+                                            style={{ transitionDelay: `${i * 100}ms` }}
                                         >
-                                            View Details <ChevronRight className="h-5 w-5 ml-1" />
-                                        </Link>
-                                    </div>
-                                </div>
-                            ))}
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex gap-4">
+                                                    {job.company?.logoUrl ? (
+                                                        <img src={job.company.logoUrl} alt={job.company.name} className="w-14 h-14 rounded-2xl object-contain bg-white shadow-lg shadow-blue-50 p-2 border border-slate-50" />
+                                                    ) : (
+                                                        <div className={`w-14 h-14 ${job.bgColor || 'bg-blue-600'} rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-50`}>
+                                                            {(typeof job.company === 'object' ? job.company.name : job.company)?.[0] || 'J'}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">{job.title}</h3>
+                                                        <p className="text-slate-500 font-bold text-sm">
+                                                            {typeof job.company === 'object' ? job.company.name : job.company}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                    {job.employmentType}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </section>
-            )}
 
-            {/* Categories */}
-            {activeTab === 'BROWSE' && (
-            <section className="py-16 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex justify-between items-end mb-10">
-                        <div>
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Categories</p>
-                            <h2 className="text-3xl font-bold text-gray-900 mt-1">Explore by industry</h2>
+            {/* 2. TRUSTED COMPANIES */}
+            <section className="py-16 border-y border-slate-50 bg-slate-50/30">
+                <div className="max-w-7xl mx-auto px-6">
+                    <p className="text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-12">Trusted by industry leaders</p>
+                    <div className="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+                        {companies.map(company => (
+                            <img key={company.name} src={company.logo} alt={company.name} className="h-8 lg:h-10 object-contain" />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* 3. DYNAMIC STATS */}
+            <section className="py-24">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        {stats.map((stat, i) => (
+                            <div key={i} className="text-center p-8 rounded-[2.5rem] bg-white border border-slate-100 hover:shadow-2xl hover:shadow-slate-100 transition-all group">
+                                <div className={`w-16 h-16 ${stat.bgColor} ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform`}>
+                                    <stat.icon className="w-8 h-8" />
+                                </div>
+                                <p className="text-4xl font-black text-slate-900 mb-2">{stat.number}</p>
+                                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* 4. EXPLORE CATEGORIES */}
+            <section className="py-24 bg-slate-900 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px] -mr-96 -mt-96"></div>
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+                        <div className="space-y-4">
+                            <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight">Explore jobs by <br /> <span className="text-blue-500">category.</span></h2>
+                            <p className="text-slate-400 font-medium max-w-md">Browse thousands of open roles across diverse industries and find your next big challenge.</p>
                         </div>
-                        <a href="#" className="text-blue-600 font-semibold text-sm hover:text-blue-700">Browse all →</a>
+                        <button className="flex items-center gap-3 text-white font-black hover:text-blue-400 transition-colors group">
+                            View All Categories <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                        </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {categories.map((cat, i) => (
-                            <div key={i} onClick={() => setFilters({...filters, search: cat.name})} className="p-6 border border-gray-200 rounded-2xl hover:bg-blue-600 hover:border-blue-600 hover:text-white transition cursor-pointer">
-                                <div className="text-2xl mb-3">{cat.icon}</div>
-                                <div className="font-bold text-gray-900 hover:text-white transition">{cat.name}</div>
-                                <div className="text-sm text-gray-600 hover:text-blue-100 transition">{cat.count}</div>
+                            <div key={i} className="bg-slate-800/50 backdrop-blur-sm p-8 rounded-[2rem] border border-slate-700/50 hover:bg-slate-800 hover:border-blue-500/50 transition-all cursor-pointer group">
+                                <div className="text-4xl mb-6 group-hover:scale-110 transition-transform inline-block">{cat.icon}</div>
+                                <h3 className="text-xl font-black text-white mb-2">{cat.name}</h3>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-slate-400 font-bold text-sm">{cat.count}</p>
+                                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white group-hover:bg-blue-600 transition-colors">
+                                        <ChevronRight className="w-4 h-4" />
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
-            )}
 
-            {/* Featured Jobs */}
-            {activeTab === 'BROWSE' || user?.role !== 'JOB_SEEKER' ? (
-            <section className="bg-gray-50 py-16 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex justify-between items-end mb-10">
-                        <div>
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Featured</p>
-                            <h2 className="text-3xl font-bold text-gray-900 mt-1">Jobs for you</h2>
-                        </div>
-                        <a href="#" className="text-blue-600 font-semibold text-sm hover:text-blue-700 flex items-center gap-1">See all jobs <ChevronRight className="w-4 h-4" /></a>
+            {/* 5. HOW IT WORKS */}
+            <section className="py-24">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
+                        <h2 className="text-4xl font-black text-slate-900">How HireHub <span className="text-blue-600">works.</span></h2>
+                        <p className="text-slate-500 font-medium text-lg">Your simplified journey from candidate to valued employee starts here.</p>
                     </div>
 
-                    {loading ? (
-                        <div className="flex justify-center py-20">
-                            <Loader2 className="animate-spin h-10 w-10 text-blue-600" />
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {jobs.slice(0, 3).map((job) => (
-                                <div key={job.id} onClick={() => navigate(`/jobs/${job.id}`)} className="bg-white p-6 rounded-2xl border border-gray-200 hover:shadow-xl transition cursor-pointer">
-                                    <h3 className="font-bold text-lg mb-1 text-gray-900">{job.title}</h3>
-                                    <p className="text-sm text-blue-600 mb-4">{job.company?.name || 'Company'}</p>
-                                    <p className="text-xs text-gray-600 mb-4">{job.location}</p>
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {['Remote', 'Full-time', 'Competitive'].map((tag, i) => (
-                                            <span key={i} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
-                                                {tag}
-                                            </span>
-                                        ))}
+                    <div className="grid md:grid-cols-3 gap-12 relative">
+                        {/* Connecting Line */}
+                        <div className="hidden md:block absolute top-24 left-0 w-full h-0.5 bg-slate-100 -z-10"></div>
+                        
+                        {[
+                            { step: '01', title: 'Create Profile', desc: 'Build a premium professional profile that showcases your unique skills and experience.', icon: Users },
+                            { step: '02', title: 'Smart Search', desc: 'Our AI-driven matching algorithm finds the roles where you\'ll actually thrive.', icon: Zap },
+                            { step: '03', title: 'Direct Hire', desc: 'Connect directly with decision-makers and get hired faster than ever before.', icon: CheckCircle2 }
+                        ].map((item, i) => (
+                            <div key={i} className="text-center space-y-6">
+                                <div className="w-20 h-20 bg-white border-4 border-white shadow-xl rounded-full flex items-center justify-center mx-auto relative group">
+                                    <div className="absolute inset-0 bg-blue-600 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
+                                    <item.icon className="w-8 h-8 text-blue-600 group-hover:text-white transition-colors relative z-10" />
+                                    <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded-lg">
+                                        {item.step}
                                     </div>
-                                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                                        <span className="font-bold text-gray-900">{job.salary?.min}K - {job.salary?.max}K</span>
-                                        <button className="text-xs px-4 py-1.5 rounded-full font-bold bg-blue-600 text-white hover:bg-blue-700 transition">
-                                            Apply
-                                        </button>
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-black text-slate-900">{item.title}</h3>
+                                    <p className="text-slate-500 font-medium text-sm leading-relaxed px-4">{item.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* 6. TESTIMONIALS */}
+            <section className="py-24 bg-blue-600 rounded-[3rem] mx-6 mb-24 overflow-hidden relative">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                <div className="max-w-7xl mx-auto px-12 relative z-10">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        <div className="space-y-8">
+                            <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />)}
+                            </div>
+                            <h2 className="text-5xl font-black text-white leading-tight">People love <br /> using HireHub.</h2>
+                            <div className="flex items-center gap-8 pt-4">
+                                <div className="text-white">
+                                    <p className="text-4xl font-black">4.9/5</p>
+                                    <p className="text-blue-100 font-bold text-sm uppercase tracking-widest">Average Rating</p>
+                                </div>
+                                <div className="w-px h-12 bg-white/20"></div>
+                                <div className="text-white">
+                                    <p className="text-4xl font-black">2M+</p>
+                                    <p className="text-blue-100 font-bold text-sm uppercase tracking-widest">Active Users</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-6">
+                            {testimonials.map((t, i) => (
+                                <div key={i} className="bg-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-8 text-blue-50 text-8xl font-serif opacity-50">"</div>
+                                    <p className="text-slate-700 text-lg font-bold leading-relaxed mb-8 relative z-10">
+                                        {t.text}
+                                    </p>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 ${t.color} rounded-xl flex items-center justify-center text-white font-black text-sm`}>
+                                            {t.avatar}
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-slate-900">{t.name}</p>
+                                            <p className="text-slate-500 font-bold text-xs">{t.role}</p>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    )}
-                </div>
-            </section>
-            ) : null}
-
-            {/* Testimonials */}
-            {activeTab === 'BROWSE' || user?.role !== 'JOB_SEEKER' ? (
-            <section className="py-16 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex justify-between items-end mb-10">
-                        <div>
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Reviews</p>
-                            <h2 className="text-3xl font-bold text-gray-900 mt-1">People love HireHub</h2>
-                        </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {testimonials.map((testi, i) => (
-                            <div key={i} className={`p-6 rounded-2xl ${testi.featured ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200'}`}>
-                                <div className="mb-4 text-yellow-400">
-                                    {'★'.repeat(testi.stars)}
-                                </div>
-                                <p className={`text-sm leading-relaxed mb-4 ${testi.featured ? 'text-blue-50' : 'text-gray-600'}`}>
-                                    {testi.text}
-                                </p>
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 ${testi.bgColor} rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0`}>
-                                        {testi.avatar}
-                                    </div>
-                                    <div>
-                                        <div className={`font-semibold text-sm ${testi.featured ? 'text-white' : 'text-gray-900'}`}>{testi.name}</div>
-                                        <div className={`text-xs ${testi.featured ? 'text-blue-200' : 'text-gray-600'}`}>{testi.role}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
                     </div>
                 </div>
             </section>
-            ) : null}
 
-            {/* CTA */}
-            <section className="mx-6 mb-12 bg-blue-600 rounded-3xl p-12 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500 rounded-full opacity-10 -z-10"></div>
-                <div className="max-w-2xl relative z-10">
-                    <h2 className="text-4xl font-bold text-white leading-tight mb-3">Ready to apply?</h2>
-                    <p className="text-blue-100 mb-8">Start your journey to your dream job today. Join thousands of professionals who found their perfect role through HireHub.</p>
-                    <div className="flex gap-3">
-                        <button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="px-6 py-3 bg-white text-blue-600 font-bold rounded-full hover:bg-gray-100 transition">
-                            Explore Jobs
-                        </button>
-                        <button onClick={() => navigate('/inbox')} className="px-6 py-3 bg-transparent text-white border-2 border-blue-300 font-bold rounded-full hover:bg-blue-500 transition">
-                            Inbox
-                        </button>
+            {/* 7. FINAL CTA */}
+            <section className="py-24 text-center">
+                <div className="max-w-4xl mx-auto px-6 space-y-12">
+                    <div className="space-y-4">
+                        <h2 className="text-5xl lg:text-6xl font-black text-slate-900">Ready to start your <br /><span className="text-blue-600">new career?</span></h2>
+                        <p className="text-xl text-slate-500 font-medium">Join thousands of others who found their professional home through HireHub.</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                        <Link to="/register" className="px-10 py-5 bg-slate-900 text-white font-black rounded-2xl shadow-2xl hover:bg-black hover:-translate-y-1 transition-all active:scale-95">
+                            Get Started for Free
+                        </Link>
+                        <Link to="/jobs" className="px-10 py-5 bg-white border-2 border-slate-100 text-slate-900 font-black rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all">
+                            Browse All Jobs
+                        </Link>
                     </div>
                 </div>
             </section>

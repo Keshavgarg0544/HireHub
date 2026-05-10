@@ -74,6 +74,7 @@ exports.getJobs = async (req, res, next) => {
       experienceLevel,
       search,
       postedBy,
+      companyId,
     } = req.query;
 
     const page = parseInt(req.query.page) || 1;
@@ -85,6 +86,7 @@ exports.getJobs = async (req, res, next) => {
     if (employmentType) filter.employmentType = employmentType;
     if (experienceLevel) filter.experienceLevel = experienceLevel;
     if (postedBy) filter.postedBy = Number(postedBy);
+    if (companyId) filter.companyId = Number(companyId);
 
 
 
@@ -120,7 +122,7 @@ exports.getJobs = async (req, res, next) => {
         {
           model: Company,
           as: "company",
-          attributes: ["id", "name", "location"],
+          attributes: ["id", "name", "location", "logoUrl"],
         },
       ],
 
@@ -145,6 +147,7 @@ exports.getJobs = async (req, res, next) => {
             id: job.company.id,
             name: job.company.name,
             location: job.company.location || "",
+            logoUrl: job.company.logoUrl || "",
           }
         : null,
       createdAt: job.createdAt,
@@ -194,7 +197,7 @@ exports.getJobById = async (req, res, next) => {
         {
           model: Company,
           as: "company",
-          attributes: ["id", "name", "location"],
+          attributes: ["id", "name", "location", "logoUrl", "description"],
         },
       ],
     });
@@ -226,6 +229,8 @@ exports.getJobById = async (req, res, next) => {
               id: job.company.id,
               name: job.company.name,
               location: job.company.location || "",
+              logoUrl: job.company.logoUrl || "",
+              description: job.company.description || "",
             }
           : null,
         createdAt: job.createdAt,

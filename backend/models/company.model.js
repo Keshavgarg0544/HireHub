@@ -58,6 +58,24 @@ const Company = sequelize.define("Company", {
     },
   },
 
+  logoUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+
+  isVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: "Used to mark official companies to prevent impersonation",
+  },
+
+  slug: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true,
+    comment: "SEO friendly URL identifier",
+  },
+
   createdBy: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -74,7 +92,24 @@ const Company = sequelize.define("Company", {
     {
       fields: ["createdBy"],
     },
+    {
+      fields: ["slug"], // Fast lookup for public company pages
+    },
   ],
+  hooks: {
+    beforeValidate: (company) => {
+      // Auto-generate slug from name if not provided
+      if (company.name && !company.slug) {
+        company.slug = company.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dashes
+          .replace(/(^-|-$)+/g, ''); // Remove leading/trailing dashes
+          
+        // Add random string to ensure uniqueness if needed, 
+        // though typically handled in the controller if a conflict occurs.
+      }
+    }
+  }
 });
 
 module.exports = Company;
