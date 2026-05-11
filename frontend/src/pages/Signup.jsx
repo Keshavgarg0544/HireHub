@@ -118,11 +118,10 @@ const Signup = () => {
             <div className="flex-1 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-24">
                 <div className="mx-auto w-full max-w-sm">
                     <div className="mb-10 text-center lg:text-left">
-                        <div className="flex items-center justify-center lg:justify-start gap-2 mb-4">
-                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
-                                <UserPlus className="text-white w-6 h-6" />
+                        <div className="flex items-center justify-center lg:justify-start mb-10">
+                            <div className="h-20 w-72 overflow-hidden flex items-center justify-center lg:justify-start relative">
+                                <img src="/logo.png?v=2" alt="HireHub Logo" className="h-64 w-auto max-w-none object-contain scale-[1.25] ml-4" />
                             </div>
-                            <span className="text-2xl font-black text-slate-900 tracking-tighter">HireHub</span>
                         </div>
                         <h2 className="text-4xl font-black text-slate-900 mb-2">Create Account.</h2>
                         <p className="text-slate-500 font-medium">Join our global community of professionals.</p>

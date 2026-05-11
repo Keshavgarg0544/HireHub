@@ -44,6 +44,11 @@ const Home = () => {
     }, []);
 
     useEffect(() => {
+        if (user?.role === 'RECRUITER') {
+            navigate('/recruiter/jobs');
+            return;
+        }
+
         const cached = localStorage.getItem('cachedJobs');
         if (cached) {
             try {
@@ -54,14 +59,11 @@ const Home = () => {
         }
         setLoading(true);
         const initialFilters = { search: '', location: '', employmentType: '' };
-        if (user?.role === 'RECRUITER') {
-            initialFilters.postedBy = user.id;
-        }
         fetchJobs(initialFilters);
         if (user?.role === 'JOB_SEEKER') {
             fetchAppliedJobs();
         }
-    }, [user?.id, user?.role, fetchJobs, fetchAppliedJobs]);
+    }, [user?.id, user?.role, fetchJobs, fetchAppliedJobs, navigate]);
 
     useEffect(() => {
         const delaySearch = setTimeout(() => {
@@ -166,7 +168,14 @@ const Home = () => {
 
                         <div className="hidden lg:block relative">
                             <div className="absolute inset-0 bg-blue-600/5 rounded-[3rem] -rotate-3 scale-105"></div>
-                            <div className="relative space-y-4">
+                            <div className="relative space-y-6">
+                                <div className="flex items-center justify-between px-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Trending Opportunities</span>
+                                    <Link to="/browse-jobs" className="flex items-center gap-2 text-blue-600 font-black text-sm group">
+                                        Browse Jobs <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
+                                </div>
+                                <div className="space-y-4">
                                 {loading ? (
                                     Array.from({ length: 3 }).map((_, i) => (
                                         <div key={i} className="bg-white p-6 rounded-[2rem] shadow-2xl border border-slate-50 animate-pulse">
@@ -210,6 +219,7 @@ const Home = () => {
                                         </div>
                                     ))
                                 )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -368,7 +378,7 @@ const Home = () => {
                         <Link to="/register" className="px-10 py-5 bg-slate-900 text-white font-black rounded-2xl shadow-2xl hover:bg-black hover:-translate-y-1 transition-all active:scale-95">
                             Get Started for Free
                         </Link>
-                        <Link to="/jobs" className="px-10 py-5 bg-white border-2 border-slate-100 text-slate-900 font-black rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all">
+                        <Link to="/browse-jobs" className="px-10 py-5 bg-white border-2 border-slate-100 text-slate-900 font-black rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all">
                             Browse All Jobs
                         </Link>
                     </div>

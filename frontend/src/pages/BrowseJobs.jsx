@@ -15,27 +15,28 @@ const BrowseJobs = () => {
         location: '',
         employmentType: ''
     });
+    const [viewMode, setViewMode] = useState('GRID'); // 'GRID' or 'LIST'
 
     const SkeletonJob = () => (
-        <div className="bg-white rounded-3xl p-8 border border-slate-100 animate-pulse space-y-6">
-            <div className="flex justify-between items-start">
-                <div className="flex gap-4 items-center">
-                    <div className="w-14 h-14 bg-slate-100 rounded-2xl"></div>
-                    <div className="space-y-2">
-                        <div className="h-5 bg-slate-100 rounded w-48"></div>
-                        <div className="h-4 bg-slate-100 rounded w-32"></div>
-                    </div>
+        <div className={`bg-white rounded-3xl border border-slate-100 animate-pulse ${viewMode === 'GRID' ? 'p-8 space-y-6' : 'p-6 flex items-center justify-between'}`}>
+            <div className={`flex gap-4 ${viewMode === 'GRID' ? 'flex-col items-start' : 'items-center flex-1'}`}>
+                <div className={`${viewMode === 'GRID' ? 'w-16 h-16' : 'w-20 h-20'} bg-slate-100 rounded-2xl`}></div>
+                <div className="flex-1 space-y-3">
+                    <div className="h-5 bg-slate-100 rounded w-1/2"></div>
+                    <div className="h-4 bg-slate-100 rounded w-1/3"></div>
                 </div>
-                <div className="h-8 bg-slate-100 rounded-full w-24"></div>
             </div>
-            <div className="space-y-2">
-                <div className="h-4 bg-slate-100 rounded w-full"></div>
-                <div className="h-4 bg-slate-100 rounded w-2/3"></div>
-            </div>
-            <div className="flex gap-4 pt-2">
-                <div className="h-4 bg-slate-100 rounded w-24"></div>
-                <div className="h-4 bg-slate-100 rounded w-24"></div>
-            </div>
+            {viewMode === 'GRID' ? (
+                <div className="pt-6 border-t border-slate-50 flex justify-between items-center">
+                    <div className="h-6 bg-slate-100 rounded w-24"></div>
+                    <div className="w-10 h-10 bg-slate-100 rounded-full"></div>
+                </div>
+            ) : (
+                <div className="flex items-center gap-6">
+                    <div className="h-6 bg-slate-100 rounded w-24 hidden sm:block"></div>
+                    <div className="w-12 h-12 bg-slate-100 rounded-2xl"></div>
+                </div>
+            )}
         </div>
     );
 
@@ -87,13 +88,19 @@ const BrowseJobs = () => {
                             <p className="text-slate-500 font-medium text-lg max-w-xl">Explore thousands of open roles from top startups to Fortune 500 giants.</p>
                         </div>
                         
-                        <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
-                            <div className="flex items-center px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-black">
+                        <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm">
+                            <button 
+                                onClick={() => setViewMode('GRID')}
+                                className={`flex items-center px-5 py-2.5 rounded-xl text-sm font-black transition-all ${viewMode === 'GRID' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-400 hover:text-slate-900'}`}
+                            >
                                 <LayoutGrid className="w-4 h-4 mr-2" /> Grid
-                            </div>
-                            <div className="flex items-center px-4 py-2 text-slate-400 hover:text-slate-900 rounded-xl text-sm font-black transition-colors cursor-pointer">
+                            </button>
+                            <button 
+                                onClick={() => setViewMode('LIST')}
+                                className={`flex items-center px-5 py-2.5 rounded-xl text-sm font-black transition-all ${viewMode === 'LIST' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-400 hover:text-slate-900'}`}
+                            >
                                 <ListIcon className="w-4 h-4 mr-2" /> List
-                            </div>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -151,78 +158,134 @@ const BrowseJobs = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {loading && jobs.length === 0 ? (
+                    <div className={viewMode === 'GRID' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" : "flex flex-col gap-6"}>
+                        {loading ? (
                             Array.from({ length: 6 }).map((_, i) => <SkeletonJob key={i} />)
                         ) : jobs.length === 0 ? (
-                            <div className="lg:col-span-2 py-32 text-center space-y-6">
-                                <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mx-auto text-slate-300">
-                                    <Search className="w-12 h-12" />
+                            <div className="col-span-full py-20 text-center space-y-4">
+                                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
+                                    <Briefcase className="w-8 h-8" />
                                 </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-2xl font-black text-slate-900">No matching jobs found.</h3>
-                                    <p className="text-slate-500 font-medium">Try broadening your search or adjusting your filters.</p>
-                                </div>
-                                <button 
-                                    onClick={() => setFilters({search: '', location: '', employmentType: ''})}
-                                    className="px-8 py-3 bg-blue-600 text-white font-black rounded-xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all"
-                                >
-                                    Clear all filters
-                                </button>
+                                <h3 className="text-xl font-black text-slate-900">No jobs found matching your criteria.</h3>
+                                <p className="text-slate-500 font-medium">Try adjusting your filters or search terms.</p>
                             </div>
                         ) : (
                             jobs.map((job, i) => (
                                 <div 
-                                    key={job.id}
+                                    key={job.id} 
                                     onClick={() => navigate(`/jobs/${job.id}`)}
-                                    className="group bg-white p-8 rounded-[2.5rem] border border-slate-100 hover:bg-white hover:shadow-2xl hover:shadow-slate-100 transition-all cursor-pointer relative overflow-hidden"
+                                    className={`group bg-white rounded-[2.5rem] border border-slate-100 hover:shadow-2xl hover:shadow-blue-50 hover:border-blue-100 transition-all cursor-pointer relative overflow-hidden ${viewMode === 'GRID' ? 'p-8' : 'p-6 flex items-center justify-between'}`}
                                 >
-                                    <div className="absolute top-0 right-0 p-8 text-slate-50 text-8xl font-black opacity-0 group-hover:opacity-10 transition-opacity">
-                                        {i + 1}
-                                    </div>
-                                    
-                                    <div className="flex flex-col h-full space-y-6 relative z-10">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex gap-4 items-center">
-                                                {job.company?.logoUrl ? (
-                                                    <img src={job.company.logoUrl} alt={job.company.name} className="w-16 h-16 rounded-3xl object-contain bg-white shadow-xl shadow-slate-100 p-2 border border-slate-50 transition-transform group-hover:scale-110" />
-                                                ) : (
-                                                    <div className={`w-16 h-16 ${['bg-blue-600', 'bg-indigo-600', 'bg-slate-900', 'bg-emerald-600'][i % 4]} rounded-3xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-slate-100 transition-transform group-hover:scale-110`}>
-                                                        {(typeof job.company === 'object' ? job.company.name : job.company)?.[0] || 'J'}
+                                    {viewMode === 'GRID' && (
+                                        <div className="absolute top-0 right-0 p-8 text-slate-50 text-8xl font-black opacity-0 group-hover:opacity-10 transition-opacity">
+                                            {i + 1}
+                                        </div>
+                                    )}
+                                    {viewMode === 'GRID' ? (
+                                        <div className="flex flex-col h-full">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white shadow-xl shadow-slate-100 p-2 border border-slate-50 transition-transform group-hover:scale-110">
+                                                        {job.company?.logoUrl ? (
+                                                            <img src={job.company.logoUrl} alt={job.company.name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl">
+                                                                {job.company?.name?.[0] || 'J'}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
-                                                <div>
-                                                    <h3 className="text-xl font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">
-                                                        {job.title}
-                                                    </h3>
-                                                    <p className="text-slate-500 font-bold text-sm">
-                                                        {typeof job.company === 'object' ? job.company.name : job.company}
-                                                    </p>
+                                                    <div>
+                                                        <h3 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-tight mb-1">{job.title}</h3>
+                                                        <div className="flex items-center gap-2 text-slate-500 font-bold text-sm">
+                                                            <Building2 className="w-4 h-4 text-slate-400" />
+                                                            {job.company?.name}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                    {job.employmentType}
                                                 </div>
                                             </div>
-                                            <div className="px-4 py-1.5 bg-slate-50 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                                {job.employmentType}
+
+                                            <p className="text-slate-500 font-medium text-sm line-clamp-2 leading-relaxed mb-8">
+                                                {job.description}
+                                            </p>
+
+                                            <div className="flex items-center gap-4 text-slate-400 font-bold text-sm mb-8">
+                                                <div className="flex items-center gap-1.5">
+                                                    <MapPin className="w-4 h-4 text-slate-300" />
+                                                    {job.location}
+                                                </div>
+                                                <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <Briefcase className="w-4 h-4 text-slate-300" />
+                                                    {job.experienceLevel}
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-auto pt-8 border-t border-slate-50 flex items-center justify-between">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none"> Salary</p>
+                                                    <p className="text-xl font-black text-slate-900 leading-none">
+                                                        ₹{job.salary?.min?.toLocaleString()} - ₹{job.salary?.max?.toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                    <ChevronRight className="w-6 h-6" />
+                                                </div>
                                             </div>
                                         </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center gap-6 flex-1">
+                                                <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-white shadow-xl shadow-slate-100 p-2 border border-slate-50 transition-transform group-hover:scale-110 shrink-0">
+                                                    {job.company?.logoUrl ? (
+                                                        <img src={job.company.logoUrl} alt={job.company.name} className="w-full h-full object-contain" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl">
+                                                            {job.company?.name?.[0] || 'J'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                <div className="space-y-1 flex-1">
+                                                    <div className="flex items-center gap-3 mb-1">
+                                                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-md">
+                                                            {job.employmentType}
+                                                        </span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-md">
+                                                            {job.experienceLevel}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="font-black text-slate-900 text-xl group-hover:text-blue-600 transition-colors">
+                                                        {job.title}
+                                                    </h3>
+                                                    <div className="flex items-center gap-4 text-slate-400 font-bold text-sm">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Building2 className="w-4 h-4 text-slate-300" />
+                                                            {job.company?.name}
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <MapPin className="w-4 h-4 text-slate-300" />
+                                                            {job.location}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                        <p className="text-slate-500 font-medium text-sm line-clamp-3 leading-relaxed">
-                                            {job.description}
-                                        </p>
-
-                                        <div className="pt-4 flex flex-wrap items-center gap-4 border-t border-slate-50 mt-auto">
-                                            <div className="flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase tracking-widest">
-                                                <MapPin className="w-3.5 h-3.5" />
-                                                {job.location}
+                                            <div className="flex items-center gap-8 ml-8">
+                                                <div className="text-right hidden sm:block">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1"> Salary</p>
+                                                    <p className="text-lg font-black text-slate-900 leading-none whitespace-nowrap">
+                                                        ₹{job.salary?.min?.toLocaleString()} - {job.salary?.max?.toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                    <ChevronRight className="w-6 h-6" />
+                                                </div>
                                             </div>
-                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
-                                            <div className="flex items-center gap-2 text-slate-900 font-black text-sm">
-                                                {job.salary ? `₹${job.salary.min?.toLocaleString()} - ₹${job.salary.max?.toLocaleString()}` : 'Competitive Salary'}
-                                            </div>
-                                            <div className="ml-auto w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                                <ChevronRight className="w-5 h-5" />
-                                            </div>
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
                                 </div>
                             ))
                         )}

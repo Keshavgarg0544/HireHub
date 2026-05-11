@@ -135,7 +135,19 @@ exports.getApplicationByJob = async (req, res, next) => {
         {
           model: db.User,
           as: "applicant",
-          attributes: ["id", "name", "email"],
+          attributes: [
+            "id", 
+            "name", 
+            "email", 
+            "phone",
+            "bio", 
+            "skills", 
+            "education", 
+            "experience", 
+            "profilePhotoUrl",
+            "coverPhotoUrl",
+            "socialLinks"
+          ],
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -144,11 +156,21 @@ exports.getApplicationByJob = async (req, res, next) => {
     const formatted = applications.map(app => ({
       id: app.id,
       status: app.status,
+      coverLetter: app.coverLetter,
+      resumeUrl: app.resumeUrl,
       applicant: app.applicant
         ? {
             id: app.applicant.id,
             name: app.applicant.name,
             email: app.applicant.email,
+            phone: app.applicant.phone,
+            bio: app.applicant.bio,
+            skills: app.applicant.skills,
+            education: app.applicant.education,
+            experience: app.applicant.experience,
+            profilePhotoUrl: app.applicant.profilePhotoUrl,
+            coverPhotoUrl: app.applicant.coverPhotoUrl,
+            socialLinks: app.applicant.socialLinks,
           }
         : null,
       appliedAt: app.createdAt,

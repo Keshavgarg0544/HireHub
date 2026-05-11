@@ -82,21 +82,20 @@ const Navbar = ({ isAuthenticated }) => {
             };
             fetchAppliedCount();
         }
-    }, [user?.id, user?.role, isAuthenticated]);
+    }, [user, isAuthenticated]);
 
     const isActive = (path) => location.pathname === path;
 
     return (
-        <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md py-3 shadow-sm border-b border-slate-100' : 'bg-white py-5 border-b border-slate-50'}`}>
+        <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white py-3 shadow-sm border-b border-slate-100' : 'bg-white py-5 border-b border-slate-50'}`}>
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex justify-between items-center">
                     {/* Logo */}
                     <div className="flex items-center gap-8">
-                        <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 group">
-                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100 group-hover:scale-105 transition-transform">
-                                <Zap className="text-white w-6 h-6 fill-white" />
+                        <Link to={isAuthenticated ? (user?.role === 'RECRUITER' ? "/recruiter/jobs" : "/dashboard") : "/"} className="flex items-center group">
+                            <div className="h-12 w-52 overflow-hidden flex items-center justify-center relative">
+                                <img src="/logo.png?v=2" alt="HireHub Logo" className="h-40 w-auto max-w-none object-contain scale-[1.25]" />
                             </div>
-                            <span className="text-2xl font-black text-slate-900 tracking-tighter">HireHub</span>
                         </Link>
 
                         {/* Desktop Nav Links (Authenticated) */}
@@ -139,12 +138,6 @@ const Navbar = ({ isAuthenticated }) => {
                                     </>
                                 ) : (
                                     <>
-                                        <Link 
-                                            to="/dashboard" 
-                                            className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${isActive('/dashboard') ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
-                                        >
-                                            Dashboard
-                                        </Link>
                                         <Link 
                                             to="/recruiter/jobs" 
                                             className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${isActive('/recruiter/jobs') ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
