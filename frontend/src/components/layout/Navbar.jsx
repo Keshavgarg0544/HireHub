@@ -38,12 +38,17 @@ const Navbar = ({ isAuthenticated }) => {
         setUser(getCurrentUser());
     }, [isAuthenticated]);
 
-    // Handle scroll effect
+    // Handle scroll effect with hysteresis to prevent jitter
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 10);
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > 50) {
+                setIsScrolled(true);
+            } else if (currentScrollY <= 10) {
+                setIsScrolled(false);
+            }
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -92,7 +97,11 @@ const Navbar = ({ isAuthenticated }) => {
     const isActive = (path) => location.pathname === path;
 
     return (
-        <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white py-3 shadow-sm border-b border-slate-100' : 'bg-white py-5 border-b border-slate-50'}`}>
+        <>
+            {/* Spacer to maintain layout stability and prevent jitter */}
+            <div className="h-[88px] lg:h-[92px] w-full"></div>
+            
+            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md py-3 shadow-sm border-b border-slate-100' : 'bg-white py-5 border-b border-slate-50'}`}>
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex justify-between items-center">
                     {/* Logo */}
@@ -272,6 +281,7 @@ const Navbar = ({ isAuthenticated }) => {
                 </div>
             </div>
         </nav>
+        </>
     );
 };
 

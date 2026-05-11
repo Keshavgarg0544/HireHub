@@ -18,13 +18,15 @@ const Onboarding = () => {
             try {
                 // First check if they already have an approved or pending membership
                 const memRes = await getMyMemberships();
-                setMemberships(memRes.data.data);
+                setMemberships(memRes.data?.data || []);
                 
                 // Fetch companies for them to search through
                 const compRes = await getCompanies({ limit: 50 });
-                setCompanies(compRes.data);
+                setCompanies(compRes.data || []);
             } catch (err) {
-                console.error(err);
+                console.error('Onboarding init error:', err);
+                setMemberships([]);
+                setCompanies([]);
             } finally {
                 setLoading(false);
             }
@@ -53,18 +55,17 @@ const Onboarding = () => {
     // If they are already approved, send them to the dashboard immediately
     useEffect(() => {
         if (approvedMembership) {
-            navigate('/recruiter/jobs');
+            navigate('/recruiter/jobs', { replace: true });
         }
     }, [approvedMembership, navigate]);
 
-    if (approvedMembership) {
-        return null;
-    }
-
-    if (loading) {
+    if (approvedMembership || loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="animate-spin h-12 w-12 text-blue-600" />
+                <div className="text-center space-y-4">
+                    <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto" />
+                    <p className="text-slate-500 font-black text-xs uppercase tracking-widest">Verifying your credentials...</p>
+                </div>
             </div>
         );
     }

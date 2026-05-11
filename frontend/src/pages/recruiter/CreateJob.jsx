@@ -9,6 +9,7 @@ import {
 import { createJob, getJobById, updateJob } from '../../services/job.service';
 import { getCompanies } from '../../services/company.service';
 import { getCurrentUser } from '../../services/auth.service';
+import { getMyMemberships } from '../../services/companyMember.service';
 
 const CreateJob = () => {
     const { id } = useParams();
@@ -42,42 +43,45 @@ const CreateJob = () => {
 
         const loadInitialData = async () => {
             try {
-                // Fetch approved memberships instead of created companies
-                const memRes = await import('../../services/companyMember.service').then(m => m.getMyMemberships());
-                const memberships = memRes.data.data.filter(m => m.status === 'APPROVED');
+                // Fetch approved memberships
+                const memRes = await getMyMemberships();
+                const memberships = memRes.data?.data || [];
+                const approvedMemberships = memberships.filter(m => m.status === 'APPROVED' && m.company);
                 
-                const companyList = memberships.map(m => m.company);
+                const companyList = approvedMemberships.map(m => m.company);
                 setCompanies(companyList);
 
                 if (isEditMode) {
                     const jRes = await getJobById(id);
                     const job = jRes.data;
-                    setFormData({
-                        title: job.title,
-                        description: job.description,
-                        skillsRequired: job.skillsRequired,
-                        location: job.location,
-                        employmentType: job.employmentType,
-                        experienceLevel: job.experienceLevel,
-                        salaryMin: job.salary?.min || '',
-                        salaryMax: job.salary?.max || '',
-                        applicationDeadline: job.applicationDeadline ? new Date(job.applicationDeadline).toISOString().split('T')[0] : '',
-                        companyId: job.company?.id || ''
-                    });
+                    if (job) {
+                        setFormData({
+                            title: job.title || '',
+                            description: job.description || '',
+                            skillsRequired: job.skillsRequired || '',
+                            location: job.location || '',
+                            employmentType: job.employmentType || 'FULL_TIME',
+                            experienceLevel: job.experienceLevel || 'FRESHER',
+                            salaryMin: job.salary?.min || '',
+                            salaryMax: job.salary?.max || '',
+                            applicationDeadline: job.applicationDeadline ? new Date(job.applicationDeadline).toISOString().split('T')[0] : '',
+                            companyId: job.company?.id || ''
+                        });
+                    }
                 } else if (companyList.length > 0) {
-                    setFormData(prev => ({ ...prev, companyId: companyList[0].id }));
+                    setFormData(prev => ({ ...prev, companyId: companyList[0]?.id || '' }));
                 } else {
                     setError('You need to be an approved member of a company before posting a job.');
                 }
             } catch (err) {
-                console.error(err);
-                setError('Failed to load required data. Please ensure you are an approved member of a company.');
+                console.error('Error loading initial data:', err);
+                setError('Failed to load required data. Please ensure you have a registered and approved company profile.');
             } finally {
                 setLoading(false);
             }
         };
         loadInitialData();
-    }, [id, isEditMode]);
+    }, [id, isEditMode, navigate]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

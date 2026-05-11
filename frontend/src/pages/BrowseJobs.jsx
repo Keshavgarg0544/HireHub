@@ -158,7 +158,7 @@ const BrowseJobs = () => {
                         </p>
                     </div>
 
-                    <div className={viewMode === 'GRID' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" : "flex flex-col gap-6"}>
+                    <div className={viewMode === 'GRID' ? "grid grid-cols-1 md:grid-cols-2 gap-8" : "flex flex-col gap-6"}>
                         {loading ? (
                             Array.from({ length: 6 }).map((_, i) => <SkeletonJob key={i} />)
                         ) : jobs.length === 0 ? (

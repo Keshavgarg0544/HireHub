@@ -62,7 +62,7 @@ function App() {
       <Navbar isAuthenticated={isAuthenticated} />
       <Routes>
         {/* Landing Page - Only show if not authenticated */}
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Landing />} />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />} />
 
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />

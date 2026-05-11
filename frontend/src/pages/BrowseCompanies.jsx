@@ -51,15 +51,17 @@ const BrowseCompanies = () => {
                         </p>
                         
                         {/* SEARCH BAR */}
-                        <div className="pt-8 max-w-xl relative group">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
-                            <input 
-                                type="text"
-                                placeholder="Search by company name or industry..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-16 pr-6 py-5 bg-white border-none shadow-2xl shadow-slate-200/50 rounded-[2rem] font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 transition-all outline-none"
-                            />
+                        <div className="pt-8 max-w-xl">
+                            <div className="relative group">
+                                <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
+                                <input 
+                                    type="text"
+                                    placeholder="Search by company name or industry..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full pl-20 pr-6 py-5 bg-white border-none shadow-2xl shadow-slate-200/50 rounded-[2rem] font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 transition-all outline-none"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

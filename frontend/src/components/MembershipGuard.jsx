@@ -19,16 +19,17 @@ const MembershipGuard = () => {
 
             try {
                 const res = await getMyMemberships();
-                setMemberships(res.data.data);
+                setMemberships(res.data?.data || []);
             } catch (err) {
-                console.error(err);
+                console.error('MembershipGuard error:', err);
+                setMemberships([]);
             } finally {
                 setLoading(false);
             }
         };
 
         checkMemberships();
-    }, [user?.role]);
+    }, [user?.role, location.pathname]); // Re-check on navigation to prevent stale data loops
 
     if (loading) {
         return (

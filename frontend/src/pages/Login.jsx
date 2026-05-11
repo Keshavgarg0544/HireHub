@@ -170,17 +170,7 @@ const Login = () => {
                         ))}
                     </div>
 
-                    <div className="pt-8">
-                        <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10 backdrop-blur-sm">
-                            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-sm">
-                                MK
-                            </div>
-                            <div>
-                                <p className="text-white font-black">Marcus Kim</p>
-                                <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Talent Lead · Stripe</p>
-                            </div>
-                        </div>
-                    </div>
+                   
                 </div>
             </div>
         </div>

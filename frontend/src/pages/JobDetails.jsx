@@ -320,12 +320,12 @@ const JobDetails = () => {
                             <img src={job.company.logoUrl} alt={job.company.name} className="w-12 h-12 rounded-xl object-contain bg-slate-50 border border-slate-100 p-1" />
                         ) : (
                             <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center font-black text-slate-400">
-                                {typeof job.company === 'object' ? job.company.name[0] : job.company[0]}
+                                {(typeof job.company === 'object' ? job.company?.name : job.company)?.[0] || 'J'}
                             </div>
                         )}
                             <div>
                                 <p className="font-black text-slate-900 leading-none mb-1">
-                                    {typeof job.company === 'object' ? job.company.name : job.company}
+                                    {typeof job.company === 'object' ? job.company?.name : (job.company || 'Unknown Company')}
                                 </p>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verified Employer</p>
                             </div>
