@@ -61,7 +61,7 @@ const JobApplications = () => {
         filter === 'ALL' ? true : app.status === filter
     );
 
-    const BACKEND_URL = 'http://localhost:5001';
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
     const getFullUrl = (path) => {
         if (!path) return null;

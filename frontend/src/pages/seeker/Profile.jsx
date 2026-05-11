@@ -4,6 +4,7 @@ import { getProfile, updateProfile } from '../../services/user.service';
 import { getCurrentUser } from '../../services/auth.service';
 
 const Profile = () => {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
     const authUser = getCurrentUser();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -98,10 +99,10 @@ const Profile = () => {
                     experience: response.data.experience || []
                 });
                 if (response.data.profilePhotoUrl) {
-                    setPhotoPreview(`http://localhost:5001${response.data.profilePhotoUrl}`);
+                    setPhotoPreview(`${BACKEND_URL}${response.data.profilePhotoUrl}`);
                 }
                 if (response.data.coverPhotoUrl) {
-                    setCoverPreview(`http://localhost:5001${response.data.coverPhotoUrl}`);
+                    setCoverPreview(`${BACKEND_URL}${response.data.coverPhotoUrl}`);
                 }
             }
         } catch (err) {
