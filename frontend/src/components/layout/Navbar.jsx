@@ -15,6 +15,11 @@ const Navbar = ({ isAuthenticated }) => {
     const [appliedJobsCount, setAppliedJobsCount] = useState(0);
     const [isScrolled, setIsScrolled] = useState(false);
     const profileMenuRef = useRef(null);
+    
+    // Close menu on navigation
+    useEffect(() => {
+        setShowProfileMenu(false);
+    }, [location]);
 
     // Sync user data on custom event or prop change
     useEffect(() => {
