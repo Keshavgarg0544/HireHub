@@ -40,18 +40,16 @@ const MembershipGuard = () => {
     }
 
     if (user?.role !== 'RECRUITER') {
-        return <Outlet />; // Let RoleGuard handle this if needed, or pass through
+        return <Outlet />; 
     }
 
     const hasApprovedMembership = memberships.some(m => m.status === 'APPROVED');
 
-    // If they are a recruiter but have no approved membership, 
-    // and they are NOT already on the onboarding or create-company page, redirect them.
+    
     if (!hasApprovedMembership && !location.pathname.includes('/onboarding') && !location.pathname.includes('/create-company')) {
         return <Navigate to="/recruiter/onboarding" replace />;
     }
 
-    // If they have an approved membership but try to go to onboarding, send them to jobs
     if (hasApprovedMembership && location.pathname.includes('/onboarding')) {
         return <Navigate to="/recruiter/jobs" replace />;
     }

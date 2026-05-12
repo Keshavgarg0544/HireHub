@@ -79,7 +79,7 @@ const User = sequelize.define("User", {
  },
 
  skills: {
-   type: DataTypes.JSON, // Store skills as an array/JSON
+   type: DataTypes.JSON, 
    allowNull: true,
    defaultValue: [],
  },

@@ -3,7 +3,6 @@ const CompanyMember = db.CompanyMember;
 const Company = db.Company;
 const User = db.User;
 
-// 1. Recruiter requests access to an existing company
 exports.requestAccess = async (req, res, next) => {
   try {
     const { companyId } = req.body;
@@ -13,13 +12,11 @@ exports.requestAccess = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Company ID is required" });
     }
 
-    // Check if company exists
     const company = await Company.findByPk(companyId);
     if (!company) {
       return res.status(404).json({ success: false, message: "Company not found" });
     }
 
-    // Check if a membership request already exists
     const existing = await CompanyMember.findOne({
       where: { companyId, userId }
     });
@@ -49,7 +46,6 @@ exports.requestAccess = async (req, res, next) => {
   }
 };
 
-// 2. Admin gets all pending requests for a company
 exports.getPendingRequests = async (req, res, next) => {
   try {
     const { companyId } = req.params;
@@ -71,11 +67,10 @@ exports.getPendingRequests = async (req, res, next) => {
   }
 };
 
-// 3. Admin reviews (approves/rejects) a request
 exports.reviewAccessRequest = async (req, res, next) => {
   try {
     const { membershipId } = req.params;
-    const { status } = req.body; // 'APPROVED' or 'REJECTED'
+    const { status } = req.body; 
 
     if (!['APPROVED', 'REJECTED'].includes(status)) {
       return res.status(400).json({ success: false, message: "Invalid status update" });
@@ -86,8 +81,6 @@ exports.reviewAccessRequest = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Membership request not found" });
     }
 
-    // Ensure the admin reviewing it actually belongs to the same company
-    // (This is also protected by the rbac middleware, but double check doesn't hurt)
     if (membership.companyId.toString() !== req.params.companyId.toString()) {
       return res.status(400).json({ success: false, message: "Company ID mismatch" });
     }
@@ -107,7 +100,6 @@ exports.reviewAccessRequest = async (req, res, next) => {
   }
 };
 
-// 4. Admin gets all members of a company
 exports.getCompanyMembers = async (req, res, next) => {
   try {
     const { companyId } = req.params;
@@ -129,7 +121,6 @@ exports.getCompanyMembers = async (req, res, next) => {
   }
 };
 
-// 5. User gets their own memberships
 exports.getMyMemberships = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -151,7 +142,6 @@ exports.getMyMemberships = async (req, res, next) => {
   }
 };
 
-// 6. Admin removes a member
 exports.removeMember = async (req, res, next) => {
   try {
     const { membershipId, companyId } = req.params;
@@ -162,7 +152,6 @@ exports.removeMember = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Membership not found" });
     }
 
-    // Prevent removing the last admin (basic safety check)
     if (membership.role === 'COMPANY_ADMIN') {
       const adminCount = await CompanyMember.count({
         where: { companyId, role: 'COMPANY_ADMIN', status: 'APPROVED' }

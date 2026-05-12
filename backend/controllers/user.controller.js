@@ -35,7 +35,6 @@ exports.updateProfile = async (req, res, next) => {
       });
     }
 
-    // Update fields if provided
     if (name) user.name = name;
     if (phone) user.phone = phone;
     if (bio) user.bio = bio;
@@ -52,7 +51,6 @@ exports.updateProfile = async (req, res, next) => {
         user.experience = typeof experience === 'string' ? JSON.parse(experience) : experience;
     }
 
-    // Handle file uploads if present
     if (req.files) {
       if (req.files.resume) {
         user.resumeUrl = `/uploads/${req.files.resume[0].filename}`;

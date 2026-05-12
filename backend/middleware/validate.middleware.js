@@ -23,7 +23,6 @@ const validate = (schema, source = "body") => {
       });
     }
 
-    // Replace request data with validated/sanitized value
     req[source] = value;
     next();
   };

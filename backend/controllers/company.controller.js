@@ -26,7 +26,7 @@ exports.createCompany = async (req, res, next) => {
       createdBy: req.user.id,
     }, { transaction: t });
 
-    // Instantly make the creator the COMPANY_ADMIN
+   
     await db.CompanyMember.create({
       userId: req.user.id,
       companyId: company.id,

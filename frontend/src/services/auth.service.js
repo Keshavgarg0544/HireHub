@@ -6,7 +6,7 @@ export const login = async (email, password) => {
         if (response.data.success && response.data.data.token) {
             localStorage.setItem('token', response.data.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.data.user));
-            // Dispatch custom event for same-tab updates
+           
             window.dispatchEvent(new CustomEvent('auth-change', { detail: { isAuthenticated: true } }));
         }
         return response.data;

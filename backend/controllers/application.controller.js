@@ -126,7 +126,7 @@ exports.getApplicationByJob = async (req, res, next) => {
   try {
     const { jobId } = req.params;
 
-    // Verify recruiter posted this job
+   
     await authService.verifyJobOwnership(req.user.id, jobId);
 
     const applications = await Application.findAll({
@@ -217,7 +217,7 @@ exports.updateStatus = async (req, res, next) => {
       });
     }
 
-    // Verify recruiter posted this job
+   
     await authService.verifyJobOwnership(req.user.id, application.jobId, { transaction: t });
 
     const currentStatus = application.status;

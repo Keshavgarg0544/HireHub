@@ -4,7 +4,6 @@ const CompanyMember = db.CompanyMember;
 exports.checkCompanyMembership = (requiredRole) => {
   return async (req, res, next) => {
     try {
-      // The companyId can be in params (e.g. /:companyId/members) or body (when posting a job)
       const companyId = req.params.companyId || req.body.companyId;
       const userId = req.user.id;
 
@@ -33,7 +32,6 @@ exports.checkCompanyMembership = (requiredRole) => {
         });
       }
 
-      // Attach membership to request for downstream use
       req.companyMembership = membership;
       next();
     } catch (error) {

@@ -25,7 +25,6 @@ router.get("/", companyController.getCompanies);
 
 router.get("/:id", companyController.getCompanyById);
 
-// Update company details (requires COMPANY_ADMIN)
 router.put(
   "/:companyId",
   auth,
@@ -33,7 +32,6 @@ router.put(
   checkCompanyMembership("COMPANY_ADMIN"),
   upload.single("logo"),
   (req, res, next) => {
-      // The controller expects id in params, but rbac expects companyId.
       req.params.id = req.params.companyId;
       next();
   },

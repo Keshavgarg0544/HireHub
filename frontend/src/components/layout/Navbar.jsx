@@ -16,12 +16,11 @@ const Navbar = ({ isAuthenticated }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const profileMenuRef = useRef(null);
     
-    // Close menu on navigation
+   
     useEffect(() => {
         setShowProfileMenu(false);
     }, [location]);
 
-    // Sync user data on custom event or prop change
     useEffect(() => {
         const handleUserUpdate = () => {
             setUser(getCurrentUser());
@@ -38,7 +37,6 @@ const Navbar = ({ isAuthenticated }) => {
         setUser(getCurrentUser());
     }, [isAuthenticated]);
 
-    // Handle scroll effect with hysteresis to prevent jitter
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;

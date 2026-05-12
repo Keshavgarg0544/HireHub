@@ -93,20 +93,18 @@ const Company = sequelize.define("Company", {
       fields: ["createdBy"],
     },
     {
-      fields: ["slug"], // Fast lookup for public company pages
+      fields: ["slug"],  
     },
   ],
   hooks: {
     beforeValidate: (company) => {
-      // Auto-generate slug from name if not provided
       if (company.name && !company.slug) {
         company.slug = company.name
           .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dashes
-          .replace(/(^-|-$)+/g, ''); // Remove leading/trailing dashes
+          .replace(/[^a-z0-9]+/g, '-') 
+          .replace(/(^-|-$)+/g, ''); 
           
-        // Add random string to ensure uniqueness if needed, 
-        // though typically handled in the controller if a conflict occurs.
+        
       }
     }
   }

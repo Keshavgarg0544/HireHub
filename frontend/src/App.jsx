@@ -27,19 +27,19 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check initial token on mount
+   
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
     setLoading(false);
 
-    // Listen for storage changes (when token is added/removed from another tab)
+   
     const handleStorageChange = (e) => {
       if (e.key === 'token') {
         setIsAuthenticated(!!e.newValue);
       }
     };
 
-    // Listen for custom auth-change event (same tab updates)
+   
     const handleAuthChange = (e) => {
       setIsAuthenticated(e.detail.isAuthenticated);
     };

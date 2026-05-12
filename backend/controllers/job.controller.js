@@ -22,7 +22,6 @@ exports.createJob = async (req, res, next) => {
       companyId,
     } = req.body;
 
-    // Verify recruiter owns the company
     await authService.verifyCompanyOwnership(req.user.id, companyId, { transaction: t });
 
     if (salaryMax < salaryMin) {
@@ -291,4 +290,4 @@ exports.deleteJob = async (req, res, next) => {
     await t.rollback();
     next(error);
   }
-};
+};

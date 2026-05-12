@@ -68,23 +68,18 @@ const CompanyMember = sequelize.define("CompanyMember", {
   timestamps: true,
   tableName: "company_members",
   
-  // Production-ready indexes for fast querying and data integrity
   indexes: [
     {
-      // A user can only have one membership record per company
       unique: true,
       fields: ["userId", "companyId"], 
     },
     {
-      // For quickly finding all members of a company
       fields: ["companyId"],
     },
     {
-      // For quickly finding all companies a user belongs to
       fields: ["userId"],
     },
     {
-      // For quickly filtering pending requests
       fields: ["companyId", "status"], 
     }
   ],

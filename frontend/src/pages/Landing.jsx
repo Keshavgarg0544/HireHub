@@ -168,7 +168,7 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* 2. TRUSTED COMPANIES */}
+          
             <section className="py-16 border-y border-slate-50 bg-slate-50/30">
                 <div className="max-w-7xl mx-auto px-6">
                     <p className="text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-12">Trusted by industry leaders</p>
@@ -180,7 +180,7 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* 3. DYNAMIC STATS */}
+           
             <section className="py-24">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -197,7 +197,6 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* 4.5 FEATURED JOBS SECTION (DARK) */}
             <section className="py-24 bg-slate-900 overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px] -mr-96 -mt-96"></div>
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -258,7 +257,6 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* 5. HOW IT WORKS */}
             <section className="py-24">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
@@ -292,7 +290,7 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* 6. TESTIMONIALS */}
+           
             <section className="py-24 bg-blue-600 rounded-[3rem] mx-6 mb-24 overflow-hidden relative">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                 <div className="max-w-7xl mx-auto px-12 relative z-10">
@@ -338,7 +336,7 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* 7. FINAL CTA */}
+           
             <section className="py-24 text-center">
                 <div className="max-w-4xl mx-auto px-6 space-y-12">
                     <div className="space-y-4">

@@ -43,7 +43,6 @@ const Home = () => {
     }, []);
 
     useEffect(() => {
-        // Prevent redirect loop for recruiters
         if (user?.role === 'RECRUITER') {
             navigate('/recruiter/jobs', { replace: true });
             return;
@@ -64,7 +63,7 @@ const Home = () => {
         if (user?.role === 'JOB_SEEKER') {
             fetchAppliedJobs();
         }
-    }, [user?.id, user?.role, navigate]); // Removed fetchJobs and fetchAppliedJobs as they are stable callbacks
+    }, [user?.id, user?.role, navigate]); 
 
     useEffect(() => {
         const delaySearch = setTimeout(() => {
@@ -107,7 +106,7 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
-            {/* 1. DASHBOARD HEADER */}
+           
             <section className="pt-24 pb-12 bg-white border-b border-slate-100">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -137,7 +136,7 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* Stats Overview */}
+                   
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
                         {stats.map((stat, i) => (
                             <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
@@ -156,12 +155,12 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* 2. MAIN CONTENT GRID */}
+            
             <section className="py-12">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid lg:grid-cols-3 gap-12">
                         
-                        {/* LEFT: JOB FEED */}
+                      
                         <div className="lg:col-span-2 space-y-8">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-black text-slate-900 flex items-center gap-3">
@@ -216,9 +215,9 @@ const Home = () => {
                             </div>
                         </div>
 
-                        {/* RIGHT: SIDEBAR */}
+                        
                         <div className="space-y-8">
-                            {/* Application Status */}
+                            
                             <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
                                 <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
                                     <ListTodo className="w-5 h-5 text-blue-600" />
@@ -244,7 +243,7 @@ const Home = () => {
                                 </button>
                             </div>
 
-                            {/* Job Alert Card */}
+                        
                             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 rounded-[2.5rem] text-white space-y-6 relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
                                 <div className="relative z-10 space-y-4">
@@ -254,7 +253,7 @@ const Home = () => {
                                 </div>
                             </div>
 
-                            {/* Profile Completion */}
+                         
                             <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm text-center space-y-4">
                                 <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600">
                                     <Star className="w-10 h-10" />

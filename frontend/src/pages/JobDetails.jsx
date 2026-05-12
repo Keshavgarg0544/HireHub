@@ -114,7 +114,7 @@ const JobDetails = () => {
 
     return (
         <div className="min-h-screen bg-slate-50/50 pb-32">
-            {/* Header / Breadcrumb */}
+          
             <div className="bg-white border-b border-slate-100 pt-12 pb-6">
                 <div className="max-w-5xl mx-auto px-6">
                     <button 
@@ -216,9 +216,8 @@ const JobDetails = () => {
                 </div>
             </div>
 
-            {/* Content Grid */}
             <div className="max-w-5xl mx-auto px-6 mt-12 grid lg:grid-cols-3 gap-12">
-                {/* Left Column: Details */}
+                
                 <div className="lg:col-span-2 space-y-12">
                     <section className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
                         <div>
@@ -274,7 +273,7 @@ const JobDetails = () => {
                     </section>
                 </div>
 
-                {/* Right Column: Quick Stats */}
+              
                 <div className="space-y-6">
                     <div className="bg-slate-900 p-8 rounded-[3rem] text-white space-y-8 shadow-2xl shadow-slate-200 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl"></div>
